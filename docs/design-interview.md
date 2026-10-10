@@ -65,4 +65,3 @@ These examples describe Gary’s reasoning. They are not verified current financ
 - Meta: hold because it appears underpriced, but the opportunity does not justify more capital.
 - Oracle: sell because of a technology-related concern and a poor chart.
 - Technical inputs: relative strength and momentum, including the 200-day moving average, used alongside fundamentals.
-
