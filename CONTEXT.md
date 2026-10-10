@@ -27,13 +27,13 @@ The S&P 500 reference used to assess portfolio performance over a five-year hori
 The five-year period used to analyze the strategy; historical versus forward-looking treatment remains unresolved.
 
 **Intended holding period**:
-The five-year period Gary intends to own a stock, subject to exit exceptions that remain to be defined.
+The five-year period Gary intends to own a stock, subject to earlier technical exits or the purchase-price stop.
 
 **Purchase-price stop**:
-A −25% threshold measured from purchase price that requires selling the entire position. The reference for multiple purchases remains unresolved.
+A −25% threshold measured from weighted-average purchase price that requires selling the entire position.
 
 **Fundamental eligibility**:
-The required combination of trailing P/E below 30, dividend yield above 2%, and latest historical revenue growth above 15%. The revenue reporting cadence remains unresolved.
+The required combination of trailing P/E below 30, dividend yield above 2%, and last-quarter historical revenue growth above 15%. The comparison basis remains unresolved.
 
 **Entry timing**:
 The decision about when to purchase a fundamentally eligible stock, informed by technical signals. It is distinct from security selection and position sizing.
@@ -49,4 +49,10 @@ Fundamentally eligible stocks awaiting a favorable technical entry.
 _Avoid_: Holdings (for stocks not yet purchased)
 
 **Portfolio loss tolerance**:
-Gary’s stated −10% portfolio loss tolerance. The reference value and action at that threshold remain unresolved.
+Gary’s stated −10% portfolio loss tolerance measured from initial capital. The action at that threshold remains unresolved.
+
+**Weighted-average purchase price (WAPP)**:
+The average purchase price of the held shares weighted by the number of shares purchased at each price.
+
+**Initial equal allocation**:
+Equal target capital allocations at the start of the portfolio. The number of allocation slots and treatment of unfilled slots remain unresolved.

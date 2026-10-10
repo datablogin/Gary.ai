@@ -1,79 +1,68 @@
 # Design interview
 
-## Settled scope
+This records agreed scope and unresolved decisions; it is not an approved implementation specification.
 
-- Project name: Gary.ai.
-- GitHub repository: public, under datablogin.
-- Investment universe: operating-company common stocks listed on US stock exchanges.
-- Starting knowledge: deep familiarity with US equity fundamentals.
-- Purpose: formalize Gary’s existing strategy and determine allocations.
-- Initial user: one experienced investor; no explanatory or support workflow required.
-- Portfolio boundary: a dedicated stock portfolio, independent of other investments.
-- Position sizing: whole blocks of 100 shares.
-- Design portfolio capital: $200,000.
-- Maximum holdings: 25 positions.
-- Objective: maximize return relative to volatility using a Sharpe-based approach; precise calculation and benchmark comparison remain unresolved.
-- Analysis period and intended holding period: both five years; early-exit exceptions remain to be specified.
-- Benchmark: S&P 500.
-- Stop-loss threshold: −25% from purchase price; treatment of multiple purchases and execution behavior remain unresolved.
+## Project and delivery
+
+- Name: Gary.ai; public GitHub repository under datablogin.
+- Formalize Gary’s existing strategy for one experienced investor, without an explanatory or support workflow.
+- Initial deliverable: a list for manual review; brokerage API integration comes later.
+- Longer-term intent: expose the workflow through an MCP server for others.
 - Design method: grilling with documentation, using grilling and domain-modeling.
-- Longer-term intent: expose the resulting workflow through an MCP server for others.
+
+## Universe and fundamentals
+
+- Operating-company common stocks listed on US stock exchanges.
+- Exclude ADRs, REITs, BDCs, and SPACs.
+- Mandatory gates: trailing P/E below 30, dividend yield above 2%, historical revenue growth above 15%.
+- Revenue growth uses the last quarter; the comparison basis remains unresolved.
+- Fundamentals determine eligibility and trump technicals.
+- Oracle’s rejection reflects insufficient fundamentals and a technology-superiority thesis outside Gary’s confidence, not a blanket technology-sector exclusion.
+
+## Technical workflow
+
+- Eligible stocks with weak charts wait on the radar list.
+- Entry setups: completed inverse head and shoulders or cup and handle.
+- Exit setup: completed head and shoulders top.
+- Other named inputs: moving averages, relative strength, support, resistance; their operational role remains unresolved.
+- Technicals determine entry timing and most exits, not selection or sizing.
+- Intended holding period: five years; sell earlier when a technical exit appears.
+
+## Portfolio and allocation
+
+- Dedicated stock portfolio independent of other investments.
+- Initial capital: $200,000; maximum 25 positions.
+- Equal allocation to start; denominator and block-rounding policy remain unresolved.
+- Whole 100-share blocks only.
+- Long-only, no margin, cash permitted.
+- Sell the entire position after a 25% decline from weighted-average purchase price (WAPP).
+- Portfolio loss tolerance: 10% from initial capital; resulting action remains unresolved.
+
+## Evaluation intent
+
+- Maximize return relative to volatility with a Sharpe-based objective.
+- Five-year analysis period; historical versus forward-looking treatment remains unresolved.
+- Benchmark: S&P 500; return convention and comparison criterion remain unresolved.
+- Equal initial sizing is agreed; Sharpe-driven sizing optimization has not been authorized.
 
 ## Open decisions
 
-- Gary’s existing screening, valuation, selection, sizing, and exit rules.
-- Exact risk-adjusted objective and the role of benchmark-relative performance.
-- Five-year holding expectation versus target, growth, technical, and stop-loss exits.
-- Stop-loss trigger action, treatment of additions, and execution behavior.
-- Allocation method, cash policy, concentration, sector exposure, and leverage constraints.
-- ADR eligibility and the operating-company boundary.
-- Evidence sources and evaluation methodology.
-- Session artifacts, data privacy, and eventual MCP delivery model.
-
-This records scope agreed during the interview; it is not an approved implementation specification.
+- Action at the portfolio loss threshold.
+- Equal allocation denominator, cash treatment, rounding, candidate ranking, and concentration limits.
+- Revenue-growth comparison basis and rules for deteriorating fundamentals.
+- Exact technical confirmation, chart timeframe, and additional technical filters.
+- First-list format, data source, refresh cadence, and holdings inputs.
+- Sharpe evaluation method and benchmark conventions.
+- Later brokerage and MCP delivery details, deferred beyond the first list.
 
 ## Gary’s examples (user-reported judgments)
 
 These examples describe Gary’s reasoning. They are not verified current financial data or recommendations.
 
 - Micron: buy based on low P/E, consistent earnings, solid growth, and a dividend.
-- Amgen: buy based on P/E below 30, dividend yield above 2%, and growth above 15%; growth metric and period are unresolved.
+- Amgen: buy based on P/E below 30, dividend yield above 2%, and growth above 15%.
 - SIRI: sell after reaching a target and no longer showing growth.
 - Meta: hold because it appears underpriced, but the opportunity does not justify more capital.
-- Oracle: sell because of a technology-related concern and a poor chart; meaning of the technology concern is unresolved.
+- Oracle: sell because of a technology-related concern and a poor chart.
 - Technical inputs: relative strength and momentum, including the 200-day moving average, used alongside fundamentals.
 
-The examples suggest a combined fundamental and technical approach. Whether each input is a hard gate, a preference, or an override has not been settled.
-
-## Additional settled rules
-
-- Fundamental requirements: P/E below 30, dividend yield above 2%, and historical revenue growth above 15%. P/E basis and revenue-growth measurement period remain unresolved.
-- Fundamentals determine security selection and take precedence over technicals.
-- Technicals determine entry timing, not security selection or allocation size. Inputs include moving averages, relative strength, support (floors), and resistance (tops); exact rules remain unresolved.
-- Exits are mostly technical; exact triggers and precedence relative to the purchase-price stop remain unresolved.
-- Oracle’s rejection reflects insufficient fundamentals and reliance on a technology-superiority thesis outside Gary’s confidence. This is not a blanket technology-sector exclusion.
-- Allocation depends on risk tolerance and portfolio size; the risk tolerance and sizing method remain unresolved.
-- Exclude ADRs, REITs, BDCs, and SPACs.
-- Portfolio is long-only and may hold cash. Borrowing and leverage have not been explicitly settled.
-
-## Current interview frontier
-
-- P/E basis, historical revenue-growth window, and fundamental review frequency.
-- Exact entry and exit technical rules, plus the operational meaning of fundamental precedence.
-- Risk tolerance, concentration limits, and conversion to 100-share blocks.
-- Mandatory versus discretionary stop action and purchase-price reference for additions.
-- Distinction between five-year holding intent and technical exits.
-- Historical evaluation window versus forward-looking objective, benchmark conventions, evidence sources, and workflow outputs.
-
-## Latest settled rules
-
-- P/E uses trailing earnings.
-- Revenue growth uses the latest historical revenue-growth figure; reporting cadence remains to be clarified.
-- Fundamentally eligible stocks with weak charts wait on a radar list.
-- Buy setups: inverse head and shoulders or cup and handle; pattern-completion confirmation remains unresolved.
-- Technical sell setup: head and shoulders top; confirmation remains unresolved.
-- Portfolio loss tolerance: −10% (equivalent to $20,000 on the initial $200,000 capital). Reference value and resulting action remain unresolved.
-- A 25% decline from purchase price requires selling the entire position. Reference price after additions remains unresolved.
-- A technical exit permits selling before the intended five-year holding period.
-
-The 10% portfolio tolerance is not yet an executable portfolio rule or a guaranteed loss ceiling. Its relationship to position sizing, correlated losses, and stop execution remains to be defined.
