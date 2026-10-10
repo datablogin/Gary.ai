@@ -44,3 +44,23 @@ These examples describe Gary’s reasoning. They are not verified current financ
 - Technical inputs: relative strength and momentum, including the 200-day moving average, used alongside fundamentals.
 
 The examples suggest a combined fundamental and technical approach. Whether each input is a hard gate, a preference, or an override has not been settled.
+
+## Additional settled rules
+
+- Fundamental requirements: P/E below 30, dividend yield above 2%, and historical revenue growth above 15%. P/E basis and revenue-growth measurement period remain unresolved.
+- Fundamentals determine security selection and take precedence over technicals.
+- Technicals determine entry timing, not security selection or allocation size. Inputs include moving averages, relative strength, support (floors), and resistance (tops); exact rules remain unresolved.
+- Exits are mostly technical; exact triggers and precedence relative to the purchase-price stop remain unresolved.
+- Oracle’s rejection reflects insufficient fundamentals and reliance on a technology-superiority thesis outside Gary’s confidence. This is not a blanket technology-sector exclusion.
+- Allocation depends on risk tolerance and portfolio size; the risk tolerance and sizing method remain unresolved.
+- Exclude ADRs, REITs, BDCs, and SPACs.
+- Portfolio is long-only and may hold cash. Borrowing and leverage have not been explicitly settled.
+
+## Current interview frontier
+
+- P/E basis, historical revenue-growth window, and fundamental review frequency.
+- Exact entry and exit technical rules, plus the operational meaning of fundamental precedence.
+- Risk tolerance, concentration limits, and conversion to 100-share blocks.
+- Mandatory versus discretionary stop action and purchase-price reference for additions.
+- Distinction between five-year holding intent and technical exits.
+- Historical evaluation window versus forward-looking objective, benchmark conventions, evidence sources, and workflow outputs.

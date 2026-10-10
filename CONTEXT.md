@@ -5,7 +5,7 @@ The domain language for developing a stock-selection and portfolio-allocation st
 ## Language
 
 **Investment universe**:
-Operating-company common stocks listed on US stock exchanges eligible for consideration. Treatment of ADRs and the boundary of an operating company remain to be clarified.
+Operating-company common stocks listed on US stock exchanges, excluding ADRs, REITs, BDCs, and SPACs.
 
 **Stock-selection strategy**:
 The explicit criteria and reasoning used to choose equities from the investment universe.
@@ -31,3 +31,15 @@ The five-year period Gary intends to own a stock, subject to exit exceptions tha
 
 **Purchase-price stop**:
 A −25% stop-loss threshold measured from the purchase price. The reference for multiple purchases and the triggered action remain unresolved.
+
+**Fundamental eligibility**:
+The required combination of P/E below 30, dividend yield above 2%, and historical revenue growth above 15%. The P/E basis and growth window remain unresolved.
+
+**Entry timing**:
+The decision about when to purchase a fundamentally eligible stock, informed by technical signals. It is distinct from security selection and position sizing.
+
+**Technical exit**:
+A decision to sell based on chart conditions. The specific conditions and their precedence relative to other exit rules remain unresolved.
+
+**Cash allocation**:
+The portion of the dedicated portfolio held as cash rather than invested in stocks.
