@@ -49,10 +49,13 @@ Fundamentally eligible stocks awaiting a favorable technical entry.
 _Avoid_: Holdings (for stocks not yet purchased)
 
 **Portfolio loss tolerance**:
-Gary’s stated −10% portfolio loss tolerance measured from initial capital. The action at that threshold remains unresolved.
+A −10% decline from initial capital that pauses new buys and initiates removal of the stocks contributing most to losses. The reduction and resumption rules remain unresolved.
 
 **Weighted-average purchase price (WAPP)**:
 The average purchase price of the held shares weighted by the number of shares purchased at each price.
 
 **Initial equal allocation**:
-Equal target capital allocations at the start of the portfolio. The number of allocation slots and treatment of unfilled slots remain unresolved.
+An initial target of $8,000 per position across 25 allocation slots. Block rounding and treatment of unfilled slots remain unresolved.
+
+**Detected pattern**:
+A chart pattern identified automatically by Gary.ai, optionally submitted to Gary for confirmation.
