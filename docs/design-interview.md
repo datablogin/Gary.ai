@@ -64,3 +64,16 @@ The examples suggest a combined fundamental and technical approach. Whether each
 - Mandatory versus discretionary stop action and purchase-price reference for additions.
 - Distinction between five-year holding intent and technical exits.
 - Historical evaluation window versus forward-looking objective, benchmark conventions, evidence sources, and workflow outputs.
+
+## Latest settled rules
+
+- P/E uses trailing earnings.
+- Revenue growth uses the latest historical revenue-growth figure; reporting cadence remains to be clarified.
+- Fundamentally eligible stocks with weak charts wait on a radar list.
+- Buy setups: inverse head and shoulders or cup and handle; pattern-completion confirmation remains unresolved.
+- Technical sell setup: head and shoulders top; confirmation remains unresolved.
+- Portfolio loss tolerance: −10% (equivalent to $20,000 on the initial $200,000 capital). Reference value and resulting action remain unresolved.
+- A 25% decline from purchase price requires selling the entire position. Reference price after additions remains unresolved.
+- A technical exit permits selling before the intended five-year holding period.
+
+The 10% portfolio tolerance is not yet an executable portfolio rule or a guaranteed loss ceiling. Its relationship to position sizing, correlated losses, and stop execution remains to be defined.

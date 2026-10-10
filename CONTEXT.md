@@ -30,10 +30,10 @@ The five-year period used to analyze the strategy; historical versus forward-loo
 The five-year period Gary intends to own a stock, subject to exit exceptions that remain to be defined.
 
 **Purchase-price stop**:
-A −25% stop-loss threshold measured from the purchase price. The reference for multiple purchases and the triggered action remain unresolved.
+A −25% threshold measured from purchase price that requires selling the entire position. The reference for multiple purchases remains unresolved.
 
 **Fundamental eligibility**:
-The required combination of P/E below 30, dividend yield above 2%, and historical revenue growth above 15%. The P/E basis and growth window remain unresolved.
+The required combination of trailing P/E below 30, dividend yield above 2%, and latest historical revenue growth above 15%. The revenue reporting cadence remains unresolved.
 
 **Entry timing**:
 The decision about when to purchase a fundamentally eligible stock, informed by technical signals. It is distinct from security selection and position sizing.
@@ -43,3 +43,10 @@ A decision to sell based on chart conditions. The specific conditions and their 
 
 **Cash allocation**:
 The portion of the dedicated portfolio held as cash rather than invested in stocks.
+
+**Radar list**:
+Fundamentally eligible stocks awaiting a favorable technical entry.
+_Avoid_: Holdings (for stocks not yet purchased)
+
+**Portfolio loss tolerance**:
+Gary’s stated −10% portfolio loss tolerance. The reference value and action at that threshold remain unresolved.
