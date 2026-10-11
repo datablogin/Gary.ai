@@ -1,5 +1,5 @@
 ---
-status: reviewed
+status: approved
 ---
 
 # Comparison, detector improvement and Train more
@@ -97,3 +97,7 @@ Verdict: **SHIP**. Three fresh, read-only, non-author lenses reviewed all four a
 | Scope/risk | Made conservative legacy exposure/alias/interval bootstrap explicit; missing evidence fails admission. Distinguished active validation reservations from historical exposed releases without rewriting old roles. | SHIP, no remaining findings |
 
 Planning artifacts were committed/pushed before review. This reviewed revision is likewise persisted to main and remote-verified. No product code, tests, primary judgments or prior private artifacts changed during shaping/review.
+
+## Human approval (2026-10-11)
+
+The user explicitly replied approved to the reviewed plan and its two additional test interfaces, then invoked dispatch-wave. Record that human approval in frontmatter. The existing detector/queue/label/summary approvals remain in force. This request selects dispatch-wave brief mode; assignments and harness have not yet been explicitly selected from a dispatch manifest. No implementation was launched while recording approval.
