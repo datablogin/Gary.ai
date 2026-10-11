@@ -4,7 +4,7 @@ An investment learning project for investors with deep knowledge of US equity fu
 
 ## Status
 
-Initial design interview concluded; strategy specification and implementation plan are available. Gary’s existing strategy is the starting point; its rules and allocation model have not yet been captured or validated.
+The first research, TDD, local deployment and independent QA cycle is implemented. The strategy is documented; data and chart recognition remain experimental. No investment performance has been validated.
 
 ## Workflow
 
@@ -23,4 +23,29 @@ See [CONTEXT.md](CONTEXT.md) for terminology and [the design interview](docs/des
 - [Strategy specification](docs/strategy-v1.md)
 - [Implementation plan](docs/implementation-plan.md)
 
-Unanswered details are labeled provisional defaults. No application code, backtest, brokerage connection, or MCP deployment exists yet.
+Unanswered strategy details are labeled provisional defaults. Brokerage integration, a validated backtest and MCP deployment remain future work.
+
+## Run locally
+
+Install [uv](https://docs.astral.sh/uv/), then run from this checkout:
+
+```bash
+uv sync
+make verify
+make preview
+```
+
+Open http://127.0.0.1:4175. The preview is explicitly synthetic and records paper state under ignored `private/`. Run, repeat and reset demonstrate the daily-step interface. It binds only to localhost.
+
+`make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
+
+## Agent development cycle
+
+Research Dot → reviewed contracts → one failing behavior test → minimum passing implementation → local preview → independent QA → failing regression → correction and recheck.
+
+- [Research findings](docs/research/2026-10-10-first-cycle.md)
+- [Approved agent plan](docs/plans/2026-10-10-agent-cycle.md)
+- [Reusable role briefs](docs/prompts/2026-10-10-agent-cycle.md)
+- [First-cycle results](docs/cycles/2026-10-10-first-cycle.md)
+
+The core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. Tests use synthetic evidence and check observable behavior. The live pilot supports data-access feasibility only; it is not an automatic source of reviewed candidates. Subsequent cycles should collect independent real-chart labels and resolve classification, financial freshness and headquarters evidence gaps before enabling a real-data portfolio.

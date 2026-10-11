@@ -5,3 +5,7 @@
 __pycache__/
 node_modules/
 private/
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/

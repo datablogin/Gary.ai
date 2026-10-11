@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gary-ai"
+version = "0.1.0"
+description = "Experimental paper-portfolio strategy research"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8.4,<9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gary"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

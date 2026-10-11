@@ -10,6 +10,8 @@ Snapshot carries `symbol`, `security_type`, `exchange`, independently evidenced 
 
 The caller can distinguish access failure, missing field, unsupported security, stale data, and future information. Never fill missing fundamental values with zero. Separate data completeness from strategy thresholds; a stock with complete data can still fail Gary’s gates.
 
+The concrete normalized snapshot schema is in [coverage-schema.md](coverage-schema.md). Reports preserve the aware `decision_cutoff` timestamp as well as the New York `as_of` date. Portfolio entries require a report for the signal date whose actual cutoff is no later than that session's 16:00 New York close. A report computed after close is not silently relabeled as close-time evidence.
+
 ## Pattern recognition
 
 `detect_patterns(bars: list[dict], as_of: str) -> list[dict]`
@@ -28,11 +30,15 @@ Candidate records must include symbol, the coverage report's `buy_allowed` resul
 
 The volatility observation must carry start/end dates and at least 200 finite daily returns in the trailing calendar year (a provisional adequacy floor, not a trading rule supplied by Gary). Pattern and fundamental availability refer to the completed prior session. Date-only financial publication evidence is conservatively usable from the following session; same-day unknown publication time cannot pass an earlier signal cutoff.
 
+The implemented conservative metadata check requires a 330–366-day observation window, an integer return count no greater than the available weekday close-to-close intervals, and a numeric finite volatility value. It is a plausibility check; it does not reconcile exchange holidays or independently verify the underlying observations. New buy signals must be available on the current signal date and have a valid completion date no later than availability. Technical sell signals have the same completion-date guard.
+
 Result: updated state, ordered paper orders, and audit events. A same-date retry returns unchanged financial state and no duplicate orders. Maximum 25 positions; a new slot spends no more than $8,000 on 100-share blocks. Stop/technical exits take precedence over entry, no same-cycle repurchase. Portfolio loss response selects up to four current negative dollar-loss contributors and consumes the threshold once; next threshold is 90% of the consumed threshold. A multi-threshold gap provisionally consumes one threshold per daily cycle and exposes the next threshold, rather than repeatedly selling/rebuying during one execution step. State must not mutate on invalid inputs.
 
 Freeze valuation/selection before filling: prior-close equity determines the portfolio threshold, and prior-close unrealized dollar losses rank the four positions. Purchase-price stops use prior-close prices; a next-open gap below the stop also requires an exit at that supplied open. Combine the four selected losers with mandatory stops/technical exits, deduplicating each position into one sell order. Select no profitable position solely to reach four. Then execute all sells before considering entries.
 
 Preflight required exits atomically. If any held position lacks a valid prior-close mark, or any required exit lacks a valid execution price, return `status: deferred` with unchanged state, no orders, no consumed threshold and no processed date. The same date remains retryable when complete prices arrive; entries are deferred with exits. This first cycle has no pending-order ledger. A missing buy execution price merely skips that candidate. QA must reproduce both a missing-price stop and a missing-price portfolio-loss event.
+
+QA refined this to require valid opening prices for **all held positions** before processing a date: an unknown opening price can conceal a gap stop even when the prior close was above the stop. Unknown opens defer the step and preserve retryability. No financial state can commit infinite valuation or sale proceeds.
 
 The first engine is a paper replay with explicit prices. Data ingestion, corporate-action accounting, dividends and production-ready brokerage execution are separate later work; its current outputs must not be called a total-return backtest.
 

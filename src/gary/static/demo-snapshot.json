@@ -1,0 +1,115 @@
+{
+  "symbol": "SYNTH-A",
+  "classification": {
+    "security_type": "operating_common",
+    "exchange": "NASDAQ",
+    "reviewed": true,
+    "source": {
+      "url": "synthetic://classification",
+      "available_at": "2026-10-08",
+      "fetched_at": "2026-10-09T19:00:00Z"
+    }
+  },
+  "headquarters": {
+    "state": "reviewed_no_disqualifying_evidence",
+    "reviewer": "synthetic fixture",
+    "lookback_start": "2025-10-09",
+    "lookback_end": "2026-10-09",
+    "source": {
+      "url": "synthetic://headquarters",
+      "available_at": "2026-10-08",
+      "fetched_at": "2026-10-09T19:00:00Z"
+    }
+  },
+  "latest_reported_period": {
+    "period_start": "2026-04-01",
+    "period_end": "2026-06-30",
+    "verified_as_of": "2026-10-09",
+    "source": {
+      "url": "synthetic://latest-filing",
+      "available_at": "2026-08-01T12:00:00Z",
+      "fetched_at": "2026-10-09T19:00:00Z"
+    }
+  },
+  "fundamentals": {
+    "trailing_pe": {
+      "value": 20,
+      "valid_through": "2026-10-09",
+      "source": {
+        "url": "synthetic://quote",
+        "available_at": "2026-10-08",
+        "fetched_at": "2026-10-09T19:00:00Z"
+      }
+    },
+    "dividend_yield": {
+      "value": 3,
+      "unit": "percent",
+      "convention": "indicated_regular",
+      "policy_reviewed": true,
+      "valid_through": "2026-10-09",
+      "source": {
+        "url": "synthetic://dividend",
+        "available_at": "2026-10-08",
+        "fetched_at": "2026-10-09T19:00:00Z"
+      }
+    },
+    "revenue": {
+      "comparability_reviewed": true,
+      "current": {
+        "value": 120,
+        "currency": "USD",
+        "scope": "consolidated",
+        "period_type": "quarter",
+        "period_start": "2026-04-01",
+        "period_end": "2026-06-30",
+        "source": {
+          "url": "synthetic://current",
+          "available_at": "2026-08-01T12:00:00Z",
+          "fetched_at": "2026-10-09T19:00:00Z"
+        }
+      },
+      "prior_year": {
+        "value": 100,
+        "currency": "USD",
+        "scope": "consolidated",
+        "period_type": "quarter",
+        "period_start": "2025-04-01",
+        "period_end": "2025-06-30",
+        "source": {
+          "url": "synthetic://prior",
+          "available_at": "2025-08-01T12:00:00Z",
+          "fetched_at": "2026-10-09T19:00:00Z"
+        }
+      }
+    },
+    "sga": {
+      "comparability_reviewed": true,
+      "current": {
+        "value": 11,
+        "currency": "USD",
+        "scope": "consolidated",
+        "period_type": "quarter",
+        "period_start": "2026-04-01",
+        "period_end": "2026-06-30",
+        "source": {
+          "url": "synthetic://current-sga",
+          "available_at": "2026-08-01T12:00:00Z",
+          "fetched_at": "2026-10-09T19:00:00Z"
+        }
+      },
+      "prior_year": {
+        "value": 10,
+        "currency": "USD",
+        "scope": "consolidated",
+        "period_type": "quarter",
+        "period_start": "2025-04-01",
+        "period_end": "2025-06-30",
+        "source": {
+          "url": "synthetic://prior-sga",
+          "available_at": "2025-08-01T12:00:00Z",
+          "fetched_at": "2026-10-09T19:00:00Z"
+        }
+      }
+    }
+  }
+}

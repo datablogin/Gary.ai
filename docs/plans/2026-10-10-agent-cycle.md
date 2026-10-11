@@ -1,5 +1,5 @@
 ---
-status: reviewed
+status: approved
 ---
 
 # Gary.ai first agent cycle
@@ -75,3 +75,5 @@ Verdict: **SHIP**, three independent non-author lenses, no remaining blockers. S
 | Scope/risk | SHIP after revision. Required-exit price failures now atomically defer unchanged state/date/threshold, with same-date retry. Valuation, loss ranking, stop gaps and duplicate exit precedence are explicit. |
 
 Next step: human launch approval of this concrete bounded cycle. Three public seams were already approved; no tests or implementation have been written during shaping/review.
+
+Human launch approval received 2026-10-10: “Approve and run the first cycle.” Implementation and localhost-only deployment are now authorized within this plan.

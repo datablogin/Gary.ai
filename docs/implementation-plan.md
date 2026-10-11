@@ -22,4 +22,4 @@ Run the daily flow end to end. Validate paper accounting and restart behavior. D
 
 Research subscriptions after measuring coverage gaps. Add brokerage read access before proposing order execution. Package validated strategy tools and prompts in MCP, with appropriate per-user state and data access. Remote deployment is a later milestone.
 
-Implementation has not begun. The current deliverable is a documented strategy and build plan.
+The first bounded research/TDD/local-preview/QA cycle is now implemented; see [cycle results](cycles/2026-10-10-first-cycle.md). Full-universe ingestion, real-chart accuracy, corporate-action/dividend accounting, the five-year backtest, brokerage access and MCP delivery remain later milestones.
