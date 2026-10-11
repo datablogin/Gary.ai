@@ -12,15 +12,22 @@
 <footer>Labeling does not place paper orders or alter the detector. Predictions, other reviewers' judgments and scores stay hidden.<br><span id="phasehint">This retrospective pilot has no validated investment-performance result.</span></footer>
 </main><script>
 const $=s=>document.querySelector(s);
-let overview,current,index=0,busy=false,selectedOffset=null,studyKey=new URLSearchParams(location.search).get('study')||'';
+const requestedChart=Number(new URLSearchParams(location.search).get('chart')||1);
+let overview,current,index=Number.isInteger(requestedChart)&&requestedChart>0?requestedChart-1:0,busy=false,selectedOffset=null,studyKey=new URLSearchParams(location.search).get('study')||'';
 const names={inverse_head_shoulders:'Inverse head & shoulders',cup_handle:'Cup & handle',head_shoulders_top:'Head & shoulders top'};
 const titles={'five-year':'FIVE-YEAR EXPLORATION',holdout:'FROZEN HOLDOUT',calibration:'CALIBRATION','holdout-original':'ORIGINAL HOLDOUT · PRESERVED'};
 function message(s){$('#status').textContent=s}
+function nextChartIndex(){
+  if(!overview)return -1;
+  const total=overview.order.length;
+  if(index<total-1)return index+1;
+  return overview.read_only?-1:overview.order.findIndex((caseId,position)=>position!==index&&!Object.hasOwn(overview.own_labels,caseId));
+}
 function controls(){
   document.querySelectorAll('button').forEach(b=>b.disabled=busy||!current);
   document.querySelectorAll('select,textarea,input').forEach(e=>e.disabled=busy||(overview?.read_only&&e.id!=='study'));
   $('#events').querySelectorAll('button').forEach(b=>b.disabled=busy||overview?.read_only);
-  if(current){$('#prev').disabled=busy||index===0;$('#next').disabled=busy||index===overview.order.length-1;$('#save').disabled=busy||overview.read_only||!$('#decision').value;$('#add').disabled=busy||overview.read_only;}
+  if(current){const next=nextChartIndex();$('#prev').disabled=busy||index===0;$('#next').disabled=busy||next<0;$('#next').textContent=next>=0&&next!==index+1?'Next unreviewed →':'Next →';$('#save').disabled=busy||overview.read_only||!$('#decision').value;$('#add').disabled=busy||overview.read_only;}
 }
 function api(path,params={}){const query=new URLSearchParams(params);if(studyKey)query.set('study',studyKey);return path+(query.size?'?'+query:'')}
 async function request(path,body){const response=await fetch(path,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});const data=await response.json();if(!response.ok)throw Error(data.error||'Request failed');return data}
@@ -59,11 +66,11 @@ function draw(){
 }
 async function load(reset=false){
   busy=true;current=null;controls();
-  try{overview=await request(api('/api/review'));studyKey=overview.study_key||'calibration';$('#study').replaceChildren(...overview.studies.map(s=>{const o=document.createElement('option');o.value=s.key;o.textContent=s.title;return o}));$('#study').value=studyKey;$('#reviewer').textContent=overview.reviewer_id+' · '+overview.reviewer_role;if(reset)index=0;if(!overview.order.length)throw Error('No review charts available');current=await request(api('/api/review/card',{id:overview.order[index]}));form();draw();}
+  try{overview=await request(api('/api/review'));studyKey=overview.study_key||'calibration';$('#study').replaceChildren(...overview.studies.map(s=>{const o=document.createElement('option');o.value=s.key;o.textContent=s.title;return o}));$('#study').value=studyKey;$('#reviewer').textContent=overview.reviewer_id+' · '+overview.reviewer_role;if(reset||index>=overview.order.length)index=0;if(!overview.order.length)throw Error('No review charts available');current=await request(api('/api/review/card',{id:overview.order[index]}));form();draw();}
   catch(e){message(e.message)}finally{busy=false;controls()}
 }
 $('#study').onchange=()=>{studyKey=$('#study').value;load(true)};
-$('#decision').onchange=()=>{$('#eventcontrols').hidden=$('#decision').value!=='completed';if($('#decision').value==='completed'&&!$('#events').children.length)eventRow();controls()};$('#add').onclick=()=>eventRow();$('#prev').onclick=()=>{index--;load()};$('#next').onclick=()=>{index++;load()};
+$('#decision').onchange=()=>{$('#eventcontrols').hidden=$('#decision').value!=='completed';if($('#decision').value==='completed'&&!$('#events').children.length)eventRow();controls()};$('#add').onclick=()=>eventRow();$('#prev').onclick=()=>{index--;load()};$('#next').onclick=()=>{const next=nextChartIndex();if(next>=0){index=next;load()}};
 $('#chart').onclick=e=>{if(!current||busy||overview.read_only)return;const bars=current.card.bars.slice(-180),rect=$('#chart').getBoundingClientRect(),px=(e.clientX-rect.left)*760/rect.width;const at=Math.round((px-52)*(bars.length-1)/684);if(at<0||at>=bars.length)return;const offset=bars[at].offset;if(offset<-19||offset>0)return;selectedOffset=offset;const rows=$('#events').children;if(rows.length)rows[rows.length-1].querySelectorAll('select')[1].value=offset;message('Completion session selected: '+offset)};
 $('#save').onclick=async()=>{
   let events=[];
@@ -71,5 +78,5 @@ $('#save').onclick=async()=>{
   const entry={case_id:current.card.case_id,view_token:current.view_token,reviewer_id:overview.reviewer_id,decision:$('#decision').value,events,rationale:$('#rationale').value,expected_revision:current.own_label?.revision||0,revise:$('#revise').checked};busy=true;controls();
   try{await request(api('/api/review/label'),entry);await load();message('Judgment saved. Predictions and scores remain hidden.')}catch(e){message(e.message)}finally{busy=false;controls()}
 };
-load(true);
+load();
 </script></body></html>
