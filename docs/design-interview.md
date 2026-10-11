@@ -23,7 +23,7 @@ This records agreed scope and unresolved decisions; it is not an approved implem
 ## Technical workflow
 
 - Eligible stocks with weak charts wait on the radar list.
-- Daily-chart entry setups: completed inverse head and shoulders or cup and handle. Gary.ai detects patterns automatically; confirmation policy remains unresolved.
+- Daily-chart entry setups: completed inverse head and shoulders or cup and handle. Gary.ai detects patterns automatically and may execute paper buys without Gary’s confirmation. Technical-sell confirmation remains to be explicitly settled.
 - Exit setup: completed head and shoulders top.
 - Other named inputs: moving averages, relative strength, support, resistance; their operational role remains unresolved.
 - Technicals determine entry timing and most exits, not selection or sizing.
@@ -37,7 +37,7 @@ This records agreed scope and unresolved decisions; it is not an approved implem
 - Whole 100-share blocks only.
 - Long-only, no margin, cash permitted.
 - Sell the entire position after a 25% decline from weighted-average purchase price (WAPP).
-- At a 10% decline from initial capital: pause new buys and start removing stocks with the largest dollar contribution to losses since purchase. Realized/unrealized treatment, liquidation amount, and buy-resumption rule remain unresolved.
+- At a 10% decline from initial capital: sell the four biggest losers by dollar contribution to losses, then permit new buys immediately. Repeat-trigger behavior and treatment of fewer than four losing positions remain unresolved.
 
 ## Evaluation intent
 
@@ -69,8 +69,15 @@ These examples describe Gary’s reasoning. They are not verified current financ
 
 ## Remaining operational decisions
 
-- How many loss-contributing positions to remove and when to resume buying after the portfolio threshold.
-- Whether completed patterns require Gary’s confirmation before a simulated action.
-- Candidate priority when multiple entries compete for available slots.
-- Market-data source, budget, and paper-trade execution convention.
+- Portfolio threshold event/rearm behavior and fewer-than-four-losers handling.
+- Technical-sell automation and optional confirmation display.
+- Volatility calculation and management/headquarters filter specification.
+- Free-access market-data selection and paper-trade execution convention.
 - Evaluation conventions and detailed detector validation will need a concrete specification before implementation.
+
+## Latest decisions
+
+- Candidate priority: lowest volatility first; volatility definition remains unresolved.
+- Management consideration: avoid companies that invested in a new headquarters, with a large SG&A increase named as a signal. Measurement, evidence requirements, and gate versus flag behavior remain unresolved.
+- Data approach: start with open-source/free-access sources; research paid subscriptions later. Provider, licensing, freshness, and completeness remain to be assessed.
+- Autonomous execution is for the simulated paper portfolio. Brokerage integration remains deferred.

@@ -49,7 +49,7 @@ Fundamentally eligible stocks awaiting a favorable technical entry.
 _Avoid_: Holdings (for stocks not yet purchased)
 
 **Portfolio loss tolerance**:
-A −10% decline from initial capital that pauses new buys and initiates removal of the stocks contributing most to losses. Stocks are ranked by dollar contribution to losses; the reduction and resumption rules remain unresolved.
+A −10% decline from initial capital that triggers sale of the four biggest dollar-loss contributors, with new buys permitted immediately afterward. Repeat-trigger behavior remains unresolved.
 
 **Weighted-average purchase price (WAPP)**:
 The average purchase price of the held shares weighted by the number of shares purchased at each price.
@@ -65,3 +65,9 @@ A simulated dedicated stock portfolio starting with $200,000 in cash. Its positi
 
 **Quarterly revenue growth**:
 The percentage change in the latest reported quarter’s revenue compared with the same quarter of the previous year.
+
+**Candidate priority**:
+The order in which eligible entry candidates receive available allocation slots, starting with the lowest volatility. The volatility measure remains unresolved.
+
+**Management screen**:
+Gary’s assessment of management through evidence of headquarters investment and significant SG&A increases. The evidence and decision thresholds remain unresolved.
