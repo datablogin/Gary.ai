@@ -357,3 +357,134 @@ def test_random_enriched_duplicate_is_one_card_with_explicit_overlap_count():
     assert len(queue["cards"]) == 2
     assert sum(case["memberships"] == ["random", "enriched"] for case in queue["sealed"]["cases"].values()) == 1
     assert summarize_review(queue, empty_labels(queue)).get("stratum_overlap_cases") == 1
+
+
+def five_year_config():
+    return {
+        "profile": "five-year-v1", "study_id": "synthetic-five-year", "id_salt": "context-test-salt",
+        "reviewers": config()["reviewers"], "detector_version": config()["detector_version"],
+        "detector_parameter_hash": config()["detector_parameter_hash"],
+        "detector_source_file_sha256": config()["detector_source_file_sha256"],
+        "as_of": "2026-10-09", "context_years": 5, "target_sessions": 20,
+        "source_symbols": ["JNJ", "JPM", "KO"], "shuffle_seed": 20261012, "holdout_locked": True,
+    }
+
+
+def five_year_sources():
+    items = []
+    for symbol in ("JNJ", "JPM", "KO"):
+        item = source(symbol, 1305)
+        day, bars = date(2021, 10, 11), []
+        while day <= date(2026, 10, 9):
+            if day.weekday() < 5:
+                close = 100 + len(bars) / 100
+                bars.append(dict(date=day.isoformat(), open=close, high=close + 1,
+                                 low=close - 1, close=close, volume=1000))
+            day += timedelta(days=1)
+        item["bars"] = bars
+        items.append(item)
+    return items
+
+
+def test_five_year_profile_has_three_full_anonymous_daily_contexts():
+    queue = build_review_queue(five_year_sources(), five_year_config())
+    assert queue["schema_version"] == "pattern-review-five-year-v1"
+    assert len(queue["cards"]) == 3
+    for key, card in queue["cards"].items():
+        assert len(card["bars"]) == 1305
+        assert card["bars"][0]["offset"] == -1304
+        assert card["bars"][-1]["offset"] == 0
+        assert card["bars"][0]["close"] == 100
+        assert set(card) == {"case_id", "bars", "target_start_offset", "target_end_offset", "price_basis", "volume_available"}
+        assert queue["sealed"]["cases"][key]["requested_start"] == "2021-10-09"
+
+
+@pytest.mark.parametrize("change", ["short", "late_start", "split", "original_source", "missing_cutoff", "unsupported_config"])
+def test_five_year_profile_refuses_incomplete_or_ineligible_context(change):
+    items, settings = five_year_sources(), five_year_config()
+    if change == "short":
+        items[0]["bars"] = items[0]["bars"][-1199:]
+    elif change == "late_start":
+        items[0]["bars"] = items[0]["bars"][6:]
+    elif change == "split":
+        items[0]["split_dates"] = [items[0]["bars"][0]["date"]]
+    elif change == "original_source":
+        items[0]["symbol"] = "MU"
+    elif change == "missing_cutoff":
+        items[0]["bars"].pop()
+    else:
+        settings["context_years"] = 4
+    with pytest.raises(ValueError):
+        build_review_queue(items, settings)
+
+
+def test_five_year_labels_match_final_event_with_dynamic_offsets_and_exploration_status():
+    items = five_year_sources()
+    drawing = json.loads((Path(__file__).parent / "fixtures" / "pattern-inverse.json").read_text())["bars"]
+    for offset, bar in enumerate(drawing):
+        items[0]["bars"][-len(drawing) + offset].update({key: value for key, value in bar.items() if key != "date"})
+    queue = build_review_queue(items, five_year_config())
+    key = next(key for key, case in queue["sealed"]["cases"].items() if case["symbol"] == "JNJ")
+    labels = empty_labels(queue)
+    for reviewer in ("observer-a", "observer-b"):
+        submitted = entry(queue, reviewer, events=[dict(kind="inverse_head_shoulders", completion_offset=0)])
+        submitted["case_id"] = key
+        labels = record_review_label(queue, labels, submitted)
+    report = summarize_review(queue, labels)
+    assert report["recognition_agreement"]["random"]["inverse_head_shoulders"]["matched_events"] == 1
+    assert report["phase"] == "exploration" and report["sampling"] == "convenience"
+    assert labels["entries"][0]["events"][0]["completion_date"] == "2026-10-09"
+
+
+@pytest.mark.parametrize("seam", ["label", "summary"])
+def test_five_year_public_card_tampering_is_rejected_even_with_recomputed_hash(seam):
+    from hashlib import sha256
+
+    queue = build_review_queue(five_year_sources(), five_year_config())
+    queue["cards"][queue["order"][0]]["bars"][0]["close"] = 101
+    queue["queue_hash"] = sha256(json.dumps({key: value for key, value in queue.items() if key != "queue_hash"},
+                                          sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    labels = empty_labels(queue)
+    with pytest.raises(ValueError, match="integrity"):
+        if seam == "label":
+            record_review_label(queue, labels, entry(queue, decision="none", events=[]))
+        else:
+            summarize_review(queue, labels)
+    assert labels["entries"] == []
+
+
+@pytest.mark.parametrize("change", ["dates", "predictions", "missing_card", "schema", "detector", "lock"])
+def test_new_profile_summary_validates_private_context_and_structure_before_first_label(change):
+    from hashlib import sha256
+
+    queue = build_review_queue(five_year_sources(), five_year_config())
+    key = queue["order"][0]
+    if change == "dates":
+        queue["sealed"]["cases"][key]["visible_dates"][0] = "1900-01-01"
+    elif change == "predictions":
+        queue["sealed"]["cases"][key]["predictions"] = [{"kind": "cup_handle"}]
+    elif change == "missing_card":
+        del queue["cards"][key]
+    elif change == "schema":
+        queue["schema_version"] = "pattern-review-v1"
+    elif change == "detector":
+        queue["sealed"]["detector"]["source_file_sha256"] = "b" * 64
+    else:
+        queue["sealed"]["holdout_locked"] = False
+    queue["queue_hash"] = sha256(json.dumps({key: value for key, value in queue.items() if key != "queue_hash"},
+                                          sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    with pytest.raises(ValueError, match="integrity"):
+        summarize_review(queue, empty_labels(queue))
+
+
+def test_five_year_profile_cannot_omit_a_declared_source_after_rehashing():
+    from hashlib import sha256
+
+    queue = build_review_queue(five_year_sources(), five_year_config())
+    key = queue["order"].pop()
+    del queue["cards"][key]
+    del queue["sealed"]["cases"][key]
+    queue["queue_hash"] = sha256(json.dumps({key: value for key, value in queue.items() if key != "queue_hash"},
+                                          sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    with pytest.raises(ValueError, match="integrity"):
+        summarize_review(queue, empty_labels(queue))

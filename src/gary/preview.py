@@ -13,13 +13,18 @@ from urllib.parse import parse_qs, urlsplit
 from gary.coverage import coverage_report
 from gary.patterns import detect_patterns
 from gary.portfolio import step_portfolio
-from gary.review_preview import DEFAULT_STUDY, load_labels, load_queue, reviewer_view, save_label
+from gary.review_preview import CYCLE3, DEFAULT_STUDY, cycle3_study, load_labels, load_queue, reviewer_view, save_label
 
 STATIC = Path(__file__).with_name("static")
 STATE_PATH = Path.cwd() / "private" / "paper-preview-state.json"
 LOCK = Lock()
 REVIEW_DIRECTORY = DEFAULT_STUDY
 REVIEWER_ID = "gary"
+CYCLE3_DIRECTORY = None
+
+STUDIES = [{"key": "five-year", "title": "Five-year exploration"},
+           {"key": "holdout", "title": "Frozen holdout"},
+           {"key": "calibration", "title": "Completed calibration"}]
 
 
 def _initial_state():
@@ -63,6 +68,31 @@ def _demo(state):
 
 
 class Handler(BaseHTTPRequestHandler):
+    def _review_context(self, query):
+        params = parse_qs(query)
+        reviewer = params.get("reviewer", [REVIEWER_ID])[0]
+        if reviewer != REVIEWER_ID:
+            raise PermissionError("Assigned reviewer only")
+        if CYCLE3_DIRECTORY is not None:
+            key = params.get("study", ["five-year"])[0]
+            if key not in {"calibration", "holdout", "five-year"}:
+                raise KeyError("Chart unavailable")
+            try:
+                directory, queue, readonly = cycle3_study(key, CYCLE3_DIRECTORY)
+            except FileNotFoundError:
+                raise
+            except (ValueError, KeyError, TypeError, IndexError, OSError) as exc:
+                raise ValueError("Study evidence could not be verified; ask the coordinator to check local artifacts") from exc
+            return directory, queue, {"study_key": key, "read_only": readonly, "studies": STUDIES}
+        if params.get("study", ["calibration"])[0] != "calibration":
+            raise KeyError("Chart unavailable")
+        queue = load_queue(REVIEW_DIRECTORY)
+        if queue["schema_version"] != "pattern-review-v1" or queue["sealed"]["config"].get("profile"):
+            raise ValueError("This study requires a verified cycle-3 release")
+        return REVIEW_DIRECTORY, queue, {
+            "study_key": "calibration", "read_only": False,
+            "studies": [{"key": "calibration", "title": "Calibration"}]}
+
     def _respond(self, data, status=200, content_type="application/json"):
         body = data if isinstance(data, bytes) else json.dumps(data, allow_nan=False).encode()
         self.send_response(status)
@@ -83,16 +113,12 @@ class Handler(BaseHTTPRequestHandler):
                 self._respond((STATIC / "review.html").read_bytes(), content_type="text/html; charset=utf-8")
             elif route.path in {"/api/review", "/api/review/card"}:
                 query = parse_qs(route.query)
-                reviewer = query.get("reviewer", [REVIEWER_ID])[0]
-                if reviewer != REVIEWER_ID:
-                    self._respond({"error": "Assigned reviewer only"}, 403)
-                    return
                 case = query.get("id", [None])[0] if route.path.endswith("/card") else None
                 if route.path.endswith("/card") and case is None:
                     raise ValueError("Select a chart")
                 with LOCK:
-                    queue = load_queue(REVIEW_DIRECTORY)
-                    self._respond(reviewer_view(queue, load_labels(queue, REVIEW_DIRECTORY), reviewer, case))
+                    directory, queue, metadata = self._review_context(route.query)
+                    self._respond(reviewer_view(queue, load_labels(queue, directory), REVIEWER_ID, case) | metadata)
             elif self.path == "/":
                 self._respond((STATIC / "index.html").read_bytes(), content_type="text/html; charset=utf-8")
             elif self.path == "/api/demo":
@@ -102,6 +128,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._respond({"status": "ok", "mode": "synthetic_paper_demo"})
             else:
                 self._respond({"error": "not found"}, 404)
+        except PermissionError as exc:
+            self._respond({"error": str(exc)}, 403)
         except KeyError:
             self._respond({"error": "Chart unavailable"}, 404)
         except FileNotFoundError:
@@ -121,7 +149,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             with LOCK:
-                if self.path == "/api/review/label":
+                route = urlsplit(self.path)
+                if route.path == "/api/review/label":
                     length = int(self.headers.get("Content-Length", "0"))
                     if not 0 < length <= 16384 or self.headers.get_content_type() != "application/json":
                         raise ValueError("A bounded JSON label is required")
@@ -131,9 +160,11 @@ class Handler(BaseHTTPRequestHandler):
                     if entry.get("reviewer_id") != REVIEWER_ID:
                         self._respond({"error": "Assigned reviewer only"}, 403)
                         return
-                    queue = load_queue(REVIEW_DIRECTORY)
-                    labels = save_label(queue, entry, REVIEW_DIRECTORY)
-                    self._respond(reviewer_view(queue, labels, entry["reviewer_id"], entry["case_id"]))
+                    directory, queue, metadata = self._review_context(route.query)
+                    if metadata["read_only"]:
+                        raise PermissionError("This completed calibration pass is frozen")
+                    labels = save_label(queue, entry, directory)
+                    self._respond(reviewer_view(queue, labels, entry["reviewer_id"], entry["case_id"]) | metadata)
                 elif self.path == "/api/reset":
                     _save_state(_initial_state())
                     self._respond(_demo(_initial_state()))
@@ -144,19 +175,26 @@ class Handler(BaseHTTPRequestHandler):
                     self._respond(demo)
                 else:
                     self._respond({"error": "not found"}, 404)
+        except PermissionError as exc:
+            self._respond({"error": str(exc)}, 403)
+        except FileNotFoundError:
+            self._respond({"error": "No released local chart study is available yet"}, 503)
         except (ValueError, KeyError, OSError, TypeError) as exc:
             self._respond({"error": str(exc)}, 400)
 
 
 def main():
-    global REVIEW_DIRECTORY, REVIEWER_ID
+    global REVIEW_DIRECTORY, REVIEWER_ID, CYCLE3_DIRECTORY
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=4175)
     parser.add_argument("--study-dir", type=Path, default=DEFAULT_STUDY)
     parser.add_argument("--reviewer", default="gary", help="bind the review server to one declared reviewer")
+    parser.add_argument("--cycle-3", action="store_true", help="serve released holdout and five-year studies")
+    parser.add_argument("--cycle-3-dir", type=Path, default=CYCLE3)
     args = parser.parse_args()
     REVIEW_DIRECTORY = args.study_dir
     REVIEWER_ID = args.reviewer
+    CYCLE3_DIRECTORY = args.cycle_3_dir if args.cycle_3 else None
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     print(f"Gary.ai synthetic paper preview: http://127.0.0.1:{args.port}", flush=True)
     try:

@@ -4,7 +4,7 @@ An investment learning project for investors with deep knowledge of US equity fu
 
 ## Status
 
-The first research, TDD, local deployment and independent QA cycle is implemented. Cycle 2 adds a local real-chart review workflow and expanded source controls. The strategy is documented; chart recognition and investment performance remain unvalidated.
+The first two research, TDD, local deployment and independent QA cycles are implemented. Cycle 3 adds separate five-year research views and a frozen original-context holdout workflow. The strategy is documented; investment performance remains unvalidated, and recognition reports require independent labels.
 
 ## Workflow
 
@@ -48,6 +48,19 @@ Open http://127.0.0.1:4175/review for anonymous chart labeling. The frozen study
 
 Queue metadata, cached bars and labels are ignored under `private/cycle-2/`. Rebuilding reproduces the study and refuses to replace a different active queue. A fresh clone lacks these private source files; synthetic paper mode remains runnable. `uv run python -m gary.review_preview report` writes a coordinator-private calibration summary. Only exact agreement between the two registered reviewers enters recognition counts; pending and uncertain labels do not become negatives. No recognition score is shown during labeling.
 
+For the third cycle on the original machine, with its preserved complete calibration copy and three-source private cache:
+
+```bash
+make review-cycle3
+make preview-cycle3
+```
+
+Open http://127.0.0.1:4175/review. Choose five-year exploration, frozen holdout or completed calibration. Five-year cards contain daily history through a fixed cutoff, with a whole-context overview and last-180-session detail; completion labels still apply only to the final 20 sessions. The new sources are separate from the original study. They are research inputs, not screened investment recommendations.
+
+The operator freezes the detector, original contexts, completed calibration labels, holdout predictions, evaluator executable hashes and scoring protocol before either new study is served. The original detector remains v1. Calibration is then read-only; holdout and five-year observations use separate journals under ignored `private/cycle-3/`. Rebuilding cannot replace an active release. Each request verifies the release; five-year cards also reproduce from the retained source cache before display. This is a local research integrity mechanism, not multi-user authentication.
+
+`uv run python -m gary.review_preview report-cycle3` writes private calibration/holdout reports and preserves completed report snapshots. Incomplete holdout passes produce progress with no recognition scores. Complete reports require two exact certain reviewers, keep random/enriched and time/source-held-out strata separate, and identify the frozen version and label snapshot. Holdout feedback cannot tune that evaluated version; later recognition changes need fresh validation. Five-year charts do not constitute a five-year investment backtest.
+
 `make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
 
 ## Agent development cycle
@@ -63,5 +76,8 @@ Research Dot → reviewed contracts → one failing behavior test → minimum pa
 - [Second-cycle data audit](docs/research/2026-10-10-cycle-2-data.md)
 - [Second-cycle sampling protocol](docs/research/2026-10-10-cycle-2-patterns.md)
 - [Second-cycle results and QA](docs/cycles/2026-10-10-cycle-2.md)
+- [Third-cycle approved plan](docs/plans/2026-10-10-cycle-3.md)
+- [Third-cycle confirmed interfaces](docs/cycle-3-contracts.md)
+- [Third-cycle results and QA](docs/cycles/2026-10-10-cycle-3.md)
 
 The strategy core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. The review workflow adds queue construction, versioned labels and calibration summaries. Tests use synthetic evidence and check observable behavior. The live pilot supports source-access and workflow feasibility; it is not an automatic source of reviewed candidates. Independent human labels, compliant SEC access and reviewed headquarters evidence remain required before recognition and real-data portfolio claims.

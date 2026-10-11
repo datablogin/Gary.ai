@@ -14,6 +14,8 @@ from gary.review import build_review_queue, record_review_label, summarize_revie
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_STUDY = ROOT / "private" / "cycle-2"
+CYCLE3 = ROOT / "private" / "cycle-3"
+FIVE_YEAR_SYMBOLS = ("JNJ", "JPM", "KO")
 SAMPLE = ("MU", "AMGN", "SIRI", "META", "ORCL", "TSM", "O", "ARCC")
 PARAMETER_HASH = "d1e59ce553b98cfffa41b2ce956ffdbd170f3883e9ec5a1fab6a22b91e23cbae"
 
@@ -171,18 +173,148 @@ def reviewer_view(queue, labels, reviewer_id, case_id=None):
             "own_labels": {case: _own_label(label) for case, label in latest.items()}}
 
 
+def _new_sources(cache):
+    """Read the three bounded research responses without changing the old cache."""
+    cache = Path(cache)
+    manifest = {row["symbol"]: row for row in json.loads((cache / "artifact-manifest.json").read_text())}
+    sources = []
+    for symbol in FIVE_YEAR_SYMBOLS:
+        row = manifest[symbol]
+        if row["file"] != f"{symbol}-chart.raw" or row["status"] != 200:
+            raise ValueError("Five-year source manifest is invalid")
+        raw = (cache / row["file"]).read_bytes()
+        if len(raw) != row["bytes"] or sha256(raw).hexdigest() != row["sha256"]:
+            raise ValueError(f"Five-year source integrity failed for {symbol}")
+        data = json.loads(raw)["chart"]["result"][0]
+        if data["meta"]["symbol"] != symbol or data["meta"]["instrumentType"] != "EQUITY":
+            raise ValueError("Five-year source identity/type mismatch")
+        zone = ZoneInfo(data["meta"]["exchangeTimezoneName"])
+        quote = data["indicators"]["quote"][0]
+        stamps = data["timestamp"]
+        if not isinstance(stamps, list) or not stamps or any(
+            not isinstance(quote.get(key), list) or len(quote[key]) != len(stamps)
+            for key in ("open", "high", "low", "close", "volume")
+        ):
+            raise ValueError("Five-year source arrays must have equal nonzero lengths")
+        bars = [{"date": datetime.fromtimestamp(stamp, zone).date().isoformat(),
+                 **{key: quote[key][i] for key in ("open", "high", "low", "close", "volume")}}
+                for i, stamp in enumerate(stamps)]
+        sources.append({"source_id": symbol, "symbol": symbol, "source_sha256": row["sha256"],
+                        "fetched_at": row["fetched_at"], "exchange_timezone": str(zone),
+                        "price_basis": "provider_received_ohlc", "bars": bars,
+                        "split_dates": sorted(datetime.fromtimestamp(event["date"], zone).date().isoformat()
+                                              for event in data.get("events", {}).get("splits", {}).values())})
+    return sources
+
+
+def _preserve_json(path, value):
+    if path.exists():
+        if json.loads(path.read_text()) != value:
+            raise ValueError("Active study/release differs; existing evidence was preserved")
+    else:
+        _write_json(path, value)
+
+
+def load_release(directory=CYCLE3):
+    """Validate every commitment before serving any released research cards."""
+    from gary.evaluation import evaluate_detector
+    directory = Path(directory)
+    queue = load_queue(directory / "calibration")
+    labels = load_labels(queue, directory / "calibration")
+    release = json.loads((directory / "release.json").read_text())
+    evaluate_detector(queue, labels, release, "calibration")
+    return release
+
+
+def cycle3_study(key, directory=CYCLE3):
+    if key not in {"calibration", "holdout", "five-year"}:
+        raise KeyError("Chart unavailable")
+    directory = Path(directory)
+    if key in {"holdout", "five-year"} or (directory / "release.json").exists():
+        release = load_release(directory)
+        queue = load_queue(directory / key)
+        if key == "holdout" and queue != release["holdout_queue"]:
+            raise ValueError("Released holdout differs from the committed queue")
+        if key == "five-year":
+            original = {source["symbol"] for source in load_queue(directory / "calibration")["sealed"]["sources"]}
+            if original & {source["symbol"] for source in queue["sealed"]["sources"]}:
+                raise ValueError("Exploration overlaps original study sources")
+            expected = build_review_queue(_new_sources(directory / "sources"), queue["sealed"]["config"])
+            if queue != expected:
+                raise ValueError("Five-year cards differ from the preserved sources/protocol")
+        return directory / key, queue, key == "calibration"
+    queue = load_queue(directory / key)
+    if queue["schema_version"] != "pattern-review-v1" or queue["sealed"]["config"].get("profile"):
+        raise ValueError("This study requires a verified cycle-3 release")
+    return directory / key, queue, False
+
+
+def build_cycle3(directory=CYCLE3, cache=None):
+    """Freeze first, then build separate holdout and five-year review studies."""
+    from gary.evaluation import freeze_evaluation
+    directory = Path(directory)
+    calibration = directory / "calibration"
+    queue = load_queue(calibration)
+    labels = load_labels(queue, calibration)
+    release = freeze_evaluation(queue, labels, "causal-geometry-v1")
+    _preserve_json(directory / "release.json", release)
+    _preserve_json(directory / "holdout" / "queue.json", release["holdout_queue"])
+    _preserve_json(directory / "holdout" / "study-config.json", release["holdout_queue"]["sealed"]["config"])
+    study = directory / "five-year"
+    config_path = study / "study-config.json"
+    settings = json.loads(config_path.read_text()) if config_path.exists() else {
+        "profile": "five-year-v1", "study_id": "gary-five-year-20261010-v1", "id_salt": secrets.token_hex(32),
+        "reviewers": deepcopy(queue["sealed"]["config"]["reviewers"]), "detector_version": "causal-geometry-v1",
+        "detector_parameter_hash": PARAMETER_HASH,
+        "detector_source_file_sha256": sha256(Path(__file__).with_name("patterns.py").read_bytes()).hexdigest(),
+        "as_of": "2026-10-09", "context_years": 5, "target_sessions": 20,
+        "source_symbols": list(FIVE_YEAR_SYMBOLS), "shuffle_seed": 20261012, "holdout_locked": True}
+    sources = _new_sources(cache or directory / "sources")
+    original = {source["symbol"] for source in queue["sealed"]["sources"]}
+    if original & {source["symbol"] for source in sources}:
+        raise ValueError("Exploration overlaps original study sources")
+    five_year = build_review_queue(sources, settings)
+    _preserve_json(config_path, settings)
+    _preserve_json(study / "queue.json", five_year)
+    load_release(directory)
+    return {"status": "ready", "five_year_cards": len(five_year["cards"]),
+            "holdout_cards": len(release["holdout_queue"]["cards"]),
+            "release_hash": release["release_hash"], "trading_approval": False}
+
+
+def report_cycle3(directory=CYCLE3):
+    from gary.evaluation import evaluate_detector
+    directory = Path(directory)
+    release = load_release(directory)
+    original = load_queue(directory / "calibration")
+    for phase in ("calibration", "holdout"):
+        queue = original if phase == "calibration" else release["holdout_queue"]
+        labels = load_labels(queue, directory / phase)
+        report = evaluate_detector(original, labels, release, phase)
+        _write_json(directory / f"{phase}-private-report.json", report)
+        if report.get("status") != "pending_labels":
+            snapshot = sha256(_json_bytes(report)).hexdigest()
+            _preserve_json(directory / "reports" / f"{phase}-{snapshot}.json", report)
+    return {"status": "saved", "recognition_scores": "coordinator-private"}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("build", "report"))
+    parser.add_argument("action", choices=("build", "report", "cycle3", "report-cycle3"))
     parser.add_argument("--cache-dir", type=Path, default=ROOT / "private" / "coverage")
-    parser.add_argument("--study-dir", type=Path, default=DEFAULT_STUDY)
+    parser.add_argument("--study-dir", type=Path)
     args = parser.parse_args(argv)
-    if args.action == "build":
-        print(json.dumps(build_study(args.cache_dir, args.study_dir), indent=2))
+    directory = args.study_dir or (CYCLE3 if args.action in {"cycle3", "report-cycle3"} else DEFAULT_STUDY)
+    if args.action == "cycle3":
+        print(json.dumps(build_cycle3(directory), indent=2))
+    elif args.action == "report-cycle3":
+        print(json.dumps(report_cycle3(directory), indent=2))
+    elif args.action == "build":
+        print(json.dumps(build_study(args.cache_dir, directory), indent=2))
     else:
-        queue = load_queue(args.study_dir)
-        result = summarize_review(queue, load_labels(queue, args.study_dir))
-        _write_json(args.study_dir / "private-report.json", result)
+        queue = load_queue(directory)
+        result = summarize_review(queue, load_labels(queue, directory))
+        _write_json(directory / "private-report.json", result)
         print("Private calibration report saved. Reviewer scores remain hidden; holdout remains locked.")
 
 

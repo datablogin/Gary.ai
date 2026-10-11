@@ -21,6 +21,12 @@ _FROZEN = {
     "detector_parameter_hash": "d1e59ce553b98cfffa41b2ce956ffdbd170f3883e9ec5a1fab6a22b91e23cbae",
 }
 _KINDS = ("inverse_head_shoulders", "cup_handle", "head_shoulders_top")
+_FIVE_YEAR = {
+    "profile": "five-year-v1", "detector_version": _FROZEN["detector_version"],
+    "detector_parameter_hash": _FROZEN["detector_parameter_hash"],
+    "as_of": "2026-10-09", "context_years": 5, "target_sessions": 20,
+    "source_symbols": ["JNJ", "JPM", "KO"], "shuffle_seed": 20261012, "holdout_locked": True,
+}
 
 
 def _label(queue, entry):
@@ -52,17 +58,26 @@ def _label(queue, entry):
 
 
 def _config(config):
-    if not isinstance(config, dict) or set(config) != set(_FROZEN) | {"study_id", "id_salt", "reviewers", "detector_source_file_sha256"}:
+    frozen = _FIVE_YEAR if isinstance(config, dict) and config.get("profile") == "five-year-v1" else _FROZEN
+    dynamic = {"study_id", "id_salt", "reviewers", "detector_source_file_sha256"}
+    if isinstance(config, dict) and config.get("profile") == "released-holdout-v1":
+        frozen = {**_FROZEN, "holdout_locked": False, "profile": "released-holdout-v1"}
+        dynamic |= {"parent_queue_hash", "release_id"}
+    if not isinstance(config, dict) or set(config) != set(frozen) | dynamic:
         raise ValueError("config fields do not match frozen study")
     copied = deepcopy(config)
-    if isinstance(copied["reserved_sources"], list) and all(isinstance(value, str) for value in copied["reserved_sources"]):
+    if isinstance(copied.get("reserved_sources"), list) and all(isinstance(value, str) for value in copied["reserved_sources"]):
         copied["reserved_sources"] = sorted(copied["reserved_sources"])
-    if any(type(copied[key]) is not type(value) or copied[key] != value for key, value in _FROZEN.items()):
+    if any(type(copied[key]) is not type(value) or copied[key] != value for key, value in frozen.items()):
         raise ValueError("config differs from frozen study")
     if any(not isinstance(copied[key], str) or not copied[key] or len(copied[key]) > 512 for key in ("study_id", "id_salt")):
         raise ValueError("config study identity is invalid")
     if not isinstance(copied["detector_source_file_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", copied["detector_source_file_sha256"]):
         raise ValueError("config requires detector source hash")
+    if copied.get("profile") == "released-holdout-v1" and any(
+        not isinstance(copied[key], str) or not re.fullmatch(r"[0-9a-f]{64}", copied[key]) for key in ("parent_queue_hash", "release_id")
+    ):
+        raise ValueError("config requires valid parent and release commitments")
     reviewers = copied["reviewers"]
     if not isinstance(reviewers, dict) or len(reviewers) != 2 or any(
         not isinstance(key, str) or not key or not isinstance(value, dict) or value.get("role") not in ("human", "agent")
@@ -108,6 +123,64 @@ def _hash(value):
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
 
+def _validate_context(queue, key, case):
+    """Reproduce case identity, dates and predictions from its committed raw bars."""
+    window = case["raw_window"]
+    if not isinstance(window, list) or len(window) < 20:
+        raise ValueError("case context integrity requires a complete target band")
+    dates = [bar["date"] for bar in window]
+    if dates != case["visible_dates"] or dates[0] != case["start_date"] or dates[-1] != case["as_of"] or any(date.fromisoformat(day).isoformat() != day for day in dates):
+        raise ValueError("case context date integrity mismatch")
+    digest = _hash(window)
+    if digest != case["window_hash"] or key != _hash([queue["sealed"]["config"]["id_salt"], case["source_id"], digest])[:16]:
+        raise ValueError("case context identity integrity mismatch")
+    source = next((item for item in queue["sealed"]["sources"] if item["source_id"] == case["source_id"]), None)
+    if source is None or source["symbol"] != case["symbol"]:
+        raise ValueError("case source integrity mismatch")
+    if any(dates[0] <= split <= dates[-1] for split in source["split_dates"]):
+        raise ValueError("case source context intersects a reported split")
+    if any(type(case[field]) is not int for field in ("source_start_index", "source_end_index")) or case["source_start_index"] < 0 or case["source_end_index"] - case["source_start_index"] != len(window) - 1:
+        raise ValueError("case context index integrity mismatch")
+    memberships = case["memberships"]
+    if not isinstance(memberships, list) or not memberships or len(set(memberships)) != len(memberships) or not set(memberships) <= {"random", "enriched"}:
+        raise ValueError("case sampling membership integrity mismatch")
+    predictions = [event for event in detect_patterns(window, case["as_of"])
+                   if dates[-20] <= event["completion_date"] <= dates[-1]
+                   and dates[-20] <= event["available_at"] <= dates[-1]]
+    if predictions != case["predictions"]:
+        raise ValueError("case prediction and context integrity mismatch")
+    if key in queue["cards"] and queue["cards"][key] != _card(key, window):
+        raise ValueError("case public card integrity mismatch")
+
+
+def _validate_profile_queue(queue):
+    config, sealed = queue["sealed"]["config"], queue["sealed"]
+    profile = config["profile"]
+    schema = "pattern-review-five-year-v1" if profile == "five-year-v1" else "pattern-review-released-holdout-v1"
+    if queue["schema_version"] != schema or queue["study_id"] != config["study_id"] or type(sealed["holdout_locked"]) is not bool or sealed["holdout_locked"] != config["holdout_locked"]:
+        raise ValueError("profile schema or lock integrity mismatch")
+    if set(queue["cards"]) != set(sealed["cases"]) or len(queue["order"]) != len(set(queue["order"])) or set(queue["order"]) != set(queue["cards"]):
+        raise ValueError("profile card/order/context integrity mismatch")
+    expected_detector = {"version": config["detector_version"], "parameter_hash": config["detector_parameter_hash"],
+                         "source_file_sha256": config["detector_source_file_sha256"]}
+    if sealed["detector"] != expected_detector:
+        raise ValueError("profile detector integrity mismatch")
+    if profile == "five-year-v1" and (len(sealed["sources"]) != 3 or sorted(item["symbol"] for item in sealed["sources"]) != config["source_symbols"]):
+        raise ValueError("profile source integrity mismatch")
+    if profile == "five-year-v1" and (len(sealed["cases"]) != 3 or {case["source_id"] for case in sealed["cases"].values()} != {item["source_id"] for item in sealed["sources"]}):
+        raise ValueError("profile requires one context per declared source for integrity")
+    if profile == "released-holdout-v1" and (sealed["parent_queue_hash"] != config["parent_queue_hash"] or sealed["release_id"] != config["release_id"] or queue["study_id"] != "gary-holdout-" + config["release_id"]):
+        raise ValueError("released profile parent/release integrity mismatch")
+    for key, case in sealed["cases"].items():
+        _validate_context(queue, key, case)
+        if profile == "five-year-v1":
+            requested = "2021-10-09"
+            if case["split"] != "calibration" or case["memberships"] != ["random"] or len(case["raw_window"]) < 1200 or case["session_count"] != len(case["raw_window"]) or case["requested_start"] != requested or case["as_of"] != config["as_of"] or not 0 <= (date.fromisoformat(case["start_date"]) - date.fromisoformat(requested)).days <= 7:
+                raise ValueError("five-year context/profile integrity mismatch")
+        elif len(case["raw_window"]) != 180 or case["split"] not in ("time_holdout", "symbol_holdout") or (case["split"] == "symbol_holdout") != (case["symbol"] in config["reserved_sources"]) or case["split"] == "time_holdout" and case["start_date"] <= config["calibration_end"]:
+            raise ValueError("released context/split integrity mismatch")
+
+
 def _card(case_id, window):
     first_close = window[0]["close"]
     volume_base = median(bar["volume"] for bar in window)
@@ -140,6 +213,10 @@ def _case(source, end, split, config, frame_size, probability):
 def build_review_queue(series: list[dict], config: dict) -> dict:
     """Freeze a private study and its calibration-only anonymous cards."""
     config = _config(config)
+    if config.get("profile") == "five-year-v1":
+        return _five_year_queue(series, config)
+    if config.get("profile") == "released-holdout-v1":
+        raise ValueError("released holdout queues require freeze_evaluation")
     cards, cases, sources, exclusions = {}, {}, [], []
     rng = Random(config["random_seed"])
     for item, events in _sources(series):
@@ -204,6 +281,49 @@ def build_review_queue(series: list[dict], config: dict) -> dict:
     return queue
 
 
+def _five_year_queue(series, config):
+    sources, cases, cards = [], {}, {}
+    cutoff = date.fromisoformat(config["as_of"])
+    requested = cutoff.replace(year=cutoff.year - 5, day=min(cutoff.day, 28)) if cutoff.month == 2 else cutoff.replace(year=cutoff.year - 5)
+    validated = _sources(series)
+    if len(validated) != 3 or sorted(item["symbol"] for item, _ in validated) != config["source_symbols"]:
+        raise ValueError("source symbols differ from the disjoint five-year study")
+    for item, _ in validated:
+        indexed = [(index, bar) for index, bar in enumerate(item["bars"])
+                   if requested.isoformat() <= bar["date"] <= config["as_of"]]
+        window = deepcopy([bar for _, bar in indexed])
+        if len(window) < 1200 or window[-1]["date"] != config["as_of"] or (date.fromisoformat(window[0]["date"]) - requested).days > 7:
+            raise ValueError("source lacks complete five-year context")
+        if any(window[0]["date"] <= split <= window[-1]["date"] for split in item["split_dates"]):
+            raise ValueError("source five-year context intersects a reported split")
+        window_hash = _hash(window)
+        case_id = _hash([config["id_salt"], item["source_id"], window_hash])[:16]
+        case = {"source_id": item["source_id"], "symbol": item["symbol"], "split": "calibration",
+                "memberships": ["random"], "start_date": window[0]["date"], "as_of": window[-1]["date"],
+                "source_start_index": indexed[0][0], "source_end_index": indexed[-1][0],
+                "visible_dates": [bar["date"] for bar in window], "window_hash": window_hash,
+                "raw_window": window, "requested_start": requested.isoformat(), "session_count": len(window),
+                "random_frame_size": None, "random_selection_probability": None,
+                "predictions": [event for event in detect_patterns(window, config["as_of"])
+                                if window[-20]["date"] <= event["completion_date"] <= window[-1]["date"]
+                                and window[-20]["date"] <= event["available_at"] <= window[-1]["date"]]}
+        sources.append({key: deepcopy(value) for key, value in item.items() if key != "bars"})
+        sources[-1]["input_bars_hash"] = _hash(item["bars"])
+        cases[case_id], cards[case_id] = case, _card(case_id, window)
+    order = list(cards)
+    Random(config["shuffle_seed"]).shuffle(order)
+    queue = {"schema_version": "pattern-review-five-year-v1", "study_id": config["study_id"],
+             "cards": cards, "order": order,
+             "sealed": {"config": deepcopy(config), "sources": sources, "cases": cases,
+                        "runtime": {"python_version": python_version(), "sampling": "convenience/shuffle"},
+                        "detector": {"version": config["detector_version"],
+                                     "parameter_hash": config["detector_parameter_hash"],
+                                     "source_file_sha256": config["detector_source_file_sha256"]},
+                        "exclusions": [], "holdout_locked": True}}
+    queue["queue_hash"] = _hash(queue)
+    return queue
+
+
 def record_review_label(queue: dict, labels: dict, entry: dict) -> dict:
     """Record a versioned reviewer observation without trading effects."""
     latest = _history(queue, labels)
@@ -228,6 +348,8 @@ def _history(queue, labels):
         if _hash({key: value for key, value in queue.items() if key != "queue_hash"}) != queue["queue_hash"]:
             raise ValueError("study queue integrity mismatch")
         _config(queue["sealed"]["config"])
+        if queue["sealed"]["config"].get("profile"):
+            _validate_profile_queue(queue)
         if labels["study_id"] != queue["study_id"] or labels["queue_hash"] != queue["queue_hash"] or not isinstance(labels["entries"], list):
             raise ValueError("label study mismatch")
         latest = {}
@@ -243,7 +365,7 @@ def _history(queue, labels):
                 raise ValueError("label revision history or provenance invalid")
             latest[key] = row
         return latest
-    except (AttributeError, KeyError, TypeError, ValueError) as error:
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
         raise ValueError(f"study or label integrity invalid: {error}") from error
 
 
@@ -290,7 +412,7 @@ def summarize_review(queue: dict, labels: dict) -> dict:
         for row in stratum.values():
             row["prediction_match_fraction"] = row["matched_events"] / row["predicted_events"] if row["predicted_events"] else None
             row["label_match_fraction"] = row["matched_events"] / row["labeled_events"] if row["labeled_events"] else None
-    return {
+    report = {
         "study_id": queue["study_id"], "queue_hash": queue["queue_hash"], "phase": "calibration",
         "holdout_locked": True, "status": "pilot_annotation", "trading_approval": False,
         "coverage": {"open_cards": len(queue["cards"]), "by_reviewer": coverage},
@@ -300,10 +422,19 @@ def summarize_review(queue: dict, labels: dict) -> dict:
         "limitations": ["Coordinator-private calibration pilot; holdout is locked.",
                         "Agent labels are not Gary's truth; no investment efficacy is evaluated.",
                         "Random/enriched strata can overlap and are not an accuracy estimate."]}
+    if queue["sealed"]["config"].get("profile") == "five-year-v1":
+        report.update(phase="exploration", sampling="convenience")
+        report["limitations"].append("Five-year convenience contexts are separate exploratory observations, not a probability sample.")
+    elif queue["sealed"]["config"].get("profile") == "released-holdout-v1":
+        report.update(phase="holdout", holdout_locked=False)
+        report["limitations"][0] = "Coordinator-private released holdout; both passes must complete before recognition reporting."
+        if any(row["unreviewed"] for row in coverage.values()):
+            report.update(status="pending_labels", recognition_agreement=None, consensus=None)
+    return report
 
 
 def _matching(case, labels):
-    offsets = {day: index - 179 for index, day in enumerate(case["visible_dates"])}
+    offsets = {day: index - len(case["visible_dates"]) + 1 for index, day in enumerate(case["visible_dates"])}
     result = {}
     for kind in _KINDS:
         predictions = sorted([event for event in case["predictions"] if event["kind"] == kind], key=lambda event: event["completion_date"])
