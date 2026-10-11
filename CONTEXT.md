@@ -33,7 +33,7 @@ The five-year period Gary intends to own a stock, subject to earlier technical e
 A −25% threshold measured from weighted-average purchase price that requires selling the entire position.
 
 **Fundamental eligibility**:
-The required combination of trailing P/E below 30, dividend yield above 2%, and last-quarter historical revenue growth above 15%. The comparison basis remains unresolved.
+The required combination of trailing P/E below 30, dividend yield above 2%, and latest-quarter revenue growth above 15% compared with the same quarter of the prior year.
 
 **Entry timing**:
 The decision about when to purchase a fundamentally eligible stock, informed by technical signals. It is distinct from security selection and position sizing.
@@ -49,13 +49,19 @@ Fundamentally eligible stocks awaiting a favorable technical entry.
 _Avoid_: Holdings (for stocks not yet purchased)
 
 **Portfolio loss tolerance**:
-A −10% decline from initial capital that pauses new buys and initiates removal of the stocks contributing most to losses. The reduction and resumption rules remain unresolved.
+A −10% decline from initial capital that pauses new buys and initiates removal of the stocks contributing most to losses. Stocks are ranked by dollar contribution to losses; the reduction and resumption rules remain unresolved.
 
 **Weighted-average purchase price (WAPP)**:
 The average purchase price of the held shares weighted by the number of shares purchased at each price.
 
 **Initial equal allocation**:
-An initial target of $8,000 per position across 25 allocation slots. Block rounding and treatment of unfilled slots remain unresolved.
+An initial target of $8,000 per position across 25 allocation slots, rounded down to whole 100-share blocks. Unused slots and rounding residuals stay in cash.
 
 **Detected pattern**:
 A chart pattern identified automatically by Gary.ai, optionally submitted to Gary for confirmation.
+
+**Paper portfolio**:
+A simulated dedicated stock portfolio starting with $200,000 in cash. Its positions and transactions are tracked independently of Gary’s actual holdings.
+
+**Quarterly revenue growth**:
+The percentage change in the latest reported quarter’s revenue compared with the same quarter of the previous year.
