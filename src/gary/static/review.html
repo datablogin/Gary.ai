@@ -6,7 +6,7 @@
 <header><div><h1>Gary.ai</h1><div class="sub">THE PATTERN LAB / THIRD AGENT CYCLE</div></div><span class="badge" id="phase">BLINDED REVIEW</span></header>
 <div class="intro"><span>Real daily charts. Anonymous sources. Frozen detector.<br>Review all completed patterns in the highlighted 20 sessions.</span><a href="/">Paper portfolio →</a></div>
 <div class="toolbar"><div><label for="study">Study</label><select id="study" aria-label="Study"></select></div><div><label>Assigned reviewer</label><span id="reviewer">Loading…</span></div><div class="progress"><strong id="progress">—</strong><br>YOUR CHARTS REVIEWED</div></div>
-<section class="panel" id="overviewpanel" hidden style="margin-bottom:18px"><div class="charthead"><h2>Five-year overview</h2><small id="contextlength"></small></div><svg id="longchart" viewBox="0 0 760 350" role="img" aria-label="Anonymous five-year daily price and volume overview" style="cursor:default"></svg></section><section class="panel"><div class="charthead"><h2 id="charttitle">Loading chart…</h2><small id="detailcaption">180 SESSIONS / INDEXED TO 100</small></div><svg id="chart" viewBox="0 0 760 350" role="img" aria-label="Anonymous daily closes with the final twenty sessions highlighted"></svg><div class="chartnote">Price indexed to the full chart’s first close. Volume relative to its median.<br>Session 0 is the chart's final close. Click the highlighted band to select a completion session.</div></section>
+<section class="panel" id="overviewpanel" hidden style="margin-bottom:18px"><div class="charthead"><h2>Five-year overview</h2><small id="contextlength"></small></div><svg id="longchart" viewBox="0 0 760 350" role="img" aria-label="Anonymous five-year daily price and volume overview" style="cursor:default"></svg></section><section class="panel"><div class="charthead"><h2 id="charttitle">Loading chart…</h2><small id="detailcaption">180 SESSIONS / INDEXED TO 100</small></div><svg id="chart" viewBox="0 0 760 350" role="img" aria-label="Anonymous daily closes with the final twenty sessions highlighted"></svg><div class="chartnote"><span id="indexnote">Price indexed to the full chart’s first close. Volume relative to its median.</span><br>Session 0 is the chart's final close. Click the highlighted band to select a completion session.</div></section>
 <div class="navigation"><button class="secondary" id="prev" disabled>← Previous</button><button class="secondary" id="next" disabled>Next →</button><span class="case" id="case"></span></div>
 <section class="panel"><h2>Your judgment</h2><div class="formlayout"><div><div class="field"><label for="decision">Completed patterns in the last 20 sessions</label><select id="decision"><option value="">Choose judgment</option><option value="completed">Completed pattern(s)</option><option value="none">None completed</option><option value="uncertain">Uncertain</option><option value="invalid">Chart cannot be reviewed</option></select></div><div id="eventcontrols" hidden><div class="eventlabels"><span>PATTERN</span><span>COMPLETION</span></div><div class="events" id="events"></div><button class="secondary" id="add" style="margin-top:12px">+ Add pattern</button></div><p class="hint">Include every completed pattern you see in the highlighted band. A forming pattern is not completed.</p></div><div><div class="field"><label for="rationale">Brief rationale</label><textarea id="rationale" maxlength="1000" placeholder="What supports your judgment?"></textarea></div><label id="revisionbox" hidden><input type="checkbox" id="revise">Append a revision to your saved judgment</label><div class="actions"><button class="primary" id="save" disabled>Save judgment</button><span id="savednote" class="hint"></span></div><div id="status" role="status" aria-live="polite"></div></div></div></section>
 <footer>Labeling does not place paper orders or alter the detector. Predictions, other reviewers' judgments and scores stay hidden.<br><span id="phasehint">This retrospective pilot has no validated investment-performance result.</span></footer>
@@ -14,7 +14,7 @@
 const $=s=>document.querySelector(s);
 let overview,current,index=0,busy=false,selectedOffset=null,studyKey=new URLSearchParams(location.search).get('study')||'';
 const names={inverse_head_shoulders:'Inverse head & shoulders',cup_handle:'Cup & handle',head_shoulders_top:'Head & shoulders top'};
-const titles={'five-year':'FIVE-YEAR EXPLORATION',holdout:'FROZEN HOLDOUT',calibration:'CALIBRATION'};
+const titles={'five-year':'FIVE-YEAR EXPLORATION',holdout:'FROZEN HOLDOUT',calibration:'CALIBRATION','holdout-original':'ORIGINAL HOLDOUT · PRESERVED'};
 function message(s){$('#status').textContent=s}
 function controls(){
   document.querySelectorAll('button').forEach(b=>b.disabled=busy||!current);
@@ -31,9 +31,9 @@ function eventRow(value={}){
   const remove=document.createElement('button');remove.className='secondary';remove.textContent='×';remove.setAttribute('aria-label','Remove pattern');remove.onclick=()=>row.remove();row.append(kind,offset,remove);$('#events').append(row);
 }
 function form(){
-  const own=current.own_label;selectedOffset=null;$('#decision').value=own?.decision||'';$('#rationale').value=own?.rationale||'';$('#events').replaceChildren();for(const e of own?.events||[])eventRow(e);$('#eventcontrols').hidden=$('#decision').value!=='completed';$('#revisionbox').hidden=!own||overview.read_only;$('#revise').checked=false;$('#savednote').textContent=overview.read_only?'Completed pass · frozen':own?'Saved · revision '+own.revision:'';message('');
+  const own=current.own_label;selectedOffset=null;$('#decision').value=own?.decision||'';$('#rationale').value=own?.rationale||'';$('#events').replaceChildren();for(const e of own?.events||[])eventRow(e);$('#eventcontrols').hidden=$('#decision').value!=='completed';$('#revisionbox').hidden=!own||overview.read_only;$('#revise').checked=false;$('#savednote').textContent=overview.read_only?'Preserved view · read-only':own?'Saved · revision '+own.revision:'';message('');
 }
-function plot(target,bars,detail){
+function plot(target,bars,detail,volumeAvailable,splitOffsets=[]){
   const lo=Math.min(...bars.map(b=>b.low)),hi=Math.max(...bars.map(b=>b.high)),pad=Math.max(hi-lo,5)*.08;
   const min=lo-pad,max=hi+pad,x=i=>52+i*684/(bars.length-1),y=p=>242-(p-min)*214/(max-min);
   const band=bars.findIndex(b=>b.offset===-19);
@@ -41,19 +41,21 @@ function plot(target,bars,detail){
   for(let i=0;i<5;i++){const p=min+(max-min)*i/4,yy=y(p);svg+=`<line x1="52" y1="${yy}" x2="738" y2="${yy}" stroke="#36483c" stroke-width=".6"/><text x="3" y="${yy+4}" fill="#a8b5a9" font-size="10">${p.toFixed(1)}</text>`;}
   if(detail)bars.forEach((b,i)=>{svg+=`<line x1="${x(i)}" y1="${y(b.high)}" x2="${x(i)}" y2="${y(b.low)}" stroke="#a8b5a9" stroke-width=".65" opacity=".4"/>`;});
   svg+=`<path d="${bars.map((b,i)=>(i?'L':'M')+x(i).toFixed(2)+','+y(b.close).toFixed(2)).join(' ')}" fill="none" stroke="#d3ee8c" stroke-width="${detail?1.7:1.1}"/>`;
-  if(current.card.volume_available){const vmax=Math.max(...bars.map(b=>b.volume),1),width=Math.min(2,684/bars.length);bars.forEach((b,i)=>{const h=45*b.volume/vmax;svg+=`<rect x="${x(i)-width/2}" y="${305-h}" width="${width}" height="${h}" fill="#a8b5a9" opacity=".45"/>`;});}
+  if(volumeAvailable){const vmax=Math.max(...bars.map(b=>b.volume),1),width=Math.min(2,684/bars.length);bars.forEach((b,i)=>{const h=45*b.volume/vmax;svg+=`<rect x="${x(i)-width/2}" y="${305-h}" width="${width}" height="${h}" fill="#a8b5a9" opacity=".45"/>`;});}
+  for(const offset of splitOffsets){const i=bars.findIndex(b=>b.offset===offset);if(i>=0){const xx=x(i);svg+=`<line x1="${xx}" y1="15" x2="${xx}" y2="305" stroke="#efbd7b" stroke-width="1" stroke-dasharray="4 4"><title>Provider-reported split at session ${offset}</title></line><text x="${xx+4}" y="22" fill="#efbd7b" font-size="9">SPLIT</text>`;}}
   const ticks=detail?[-179,-120,-60,-19,0]:[bars[0].offset,-1000,-750,-500,-250,0];
   for(const offset of ticks){const i=bars.findIndex(b=>b.offset===offset);if(i>=0)svg+=`<text x="${x(i)}" y="329" text-anchor="middle" fill="#a8b5a9" font-size="10">${offset}</text>`;}
   if(band>=0&&detail)svg+=`<text x="${x(band)}" y="12" fill="#efbd7b" font-size="9">REVIEW BAND</text>`;
   $(target).innerHTML=svg;
 }
 function draw(){
-  const bars=current.card.bars,long=bars.length>180;$('#overviewpanel').hidden=!long;
-  if(long){plot('#longchart',bars,false);$('#contextlength').textContent=bars.length+' DAILY SESSIONS';}
-  plot('#chart',bars.slice(-180),true);$('#detailcaption').textContent=long?'LAST 180 SESSIONS / DETAIL':'180 SESSIONS / INDEXED TO 100';
+  const bars=current.card.bars,context=current.overview,long=!!context||bars.length>180;$('#overviewpanel').hidden=!long;
+  if(long){const whole=context?.bars||bars;plot('#longchart',whole,false,context?.volume_available??current.card.volume_available,context?.split_offsets||[]);$('#contextlength').textContent=whole.length+' DAILY SESSIONS';}
+  plot('#chart',bars.slice(-180),true,current.card.volume_available);$('#detailcaption').textContent=long?'LAST 180 SESSIONS / DETAIL':'180 SESSIONS / INDEXED TO 100';
+  $('#indexnote').textContent=context?'Each view starts at price index 100 and uses its own median volume. Dashed markers show provider-reported splits; adjustment accuracy is unverified.':'Price indexed to the full chart’s first close. Volume relative to its median.';
   $('#charttitle').textContent='Chart '+String(index+1).padStart(2,'0')+' / '+overview.order.length;$('#case').textContent=current.card.case_id;$('#progress').textContent=overview.progress.labeled+' / '+overview.progress.total;
-  $('#phase').textContent=titles[studyKey]||'BLINDED REVIEW';
-  $('#phasehint').textContent=studyKey==='five-year'?'Separate five-year exploration; these labels do not tune the frozen holdout detector.':studyKey==='holdout'?'Frozen detector and original contexts. Recognition scores remain private until both complete review passes.':overview.read_only?'Your completed calibration pass is preserved.':'Holdout charts remain locked. This retrospective pilot has no validated accuracy or investment-performance result.';
+  $('#phase').textContent=context?'HOLDOUT + FIVE-YEAR CONTEXT':titles[studyKey]||'BLINDED REVIEW';
+  $('#phasehint').textContent=context?'Five-year history ends at this chart’s original cutoff. These judgments are saved separately from the original holdout pass.':studyKey==='five-year'?'Separate five-year exploration; these labels do not tune the frozen holdout detector.':studyKey==='holdout-original'?'Original 180-session pass preserved. Added context may affect later judgments, so this view is read-only.':studyKey==='holdout'?(overview.read_only?'Original 180-session pass preserved and read-only after added context was made available.':'Frozen detector and original contexts. Recognition scores remain private until both complete review passes.'):overview.read_only?'Your completed calibration pass is preserved.':'Holdout charts remain locked. This retrospective pilot has no validated accuracy or investment-performance result.';
 }
 async function load(reset=false){
   busy=true;current=null;controls();
@@ -66,7 +68,7 @@ $('#chart').onclick=e=>{if(!current||busy||overview.read_only)return;const bars=
 $('#save').onclick=async()=>{
   let events=[];
   if($('#decision').value==='completed'){for(const row of $('#events').children){const selects=row.querySelectorAll('select');if(!selects[0].value||selects[1].value===''){message('Choose a pattern and completion session for each event.');return}events.push({kind:selects[0].value,completion_offset:Number(selects[1].value)})}if(!events.length){message('Add at least one completed pattern.');return}}
-  const entry={case_id:current.card.case_id,reviewer_id:overview.reviewer_id,decision:$('#decision').value,events,rationale:$('#rationale').value,expected_revision:current.own_label?.revision||0,revise:$('#revise').checked};busy=true;controls();
+  const entry={case_id:current.card.case_id,view_token:current.view_token,reviewer_id:overview.reviewer_id,decision:$('#decision').value,events,rationale:$('#rationale').value,expected_revision:current.own_label?.revision||0,revise:$('#revise').checked};busy=true;controls();
   try{await request(api('/api/review/label'),entry);await load();message('Judgment saved. Predictions and scores remain hidden.')}catch(e){message(e.message)}finally{busy=false;controls()}
 };
 load(true);

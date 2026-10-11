@@ -17,6 +17,7 @@ DEFAULT_STUDY = ROOT / "private" / "cycle-2"
 CYCLE3 = ROOT / "private" / "cycle-3"
 FIVE_YEAR_SYMBOLS = ("JNJ", "JPM", "KO")
 SAMPLE = ("MU", "AMGN", "SIRI", "META", "ORCL", "TSM", "O", "ARCC")
+CONTEXT_CACHE = ROOT / "private" / "holdout-context" / "sources"
 PARAMETER_HASH = "d1e59ce553b98cfffa41b2ce956ffdbd170f3883e9ec5a1fab6a22b91e23cbae"
 
 
@@ -118,7 +119,7 @@ def load_labels(queue, directory=DEFAULT_STUDY):
             record = json.loads(line)
             if record["queue_hash"] != queue["queue_hash"]:
                 raise ValueError("Journal belongs to a different frozen queue")
-            labels = record_review_label(queue, labels, record["submission"])
+            labels = _record_label(queue, labels, record["submission"])
     return labels
 
 
@@ -126,7 +127,7 @@ def save_label(queue, entry, directory=DEFAULT_STUDY):
     """Append and fsync before acknowledgment; retries recover a missing JSON cache."""
     directory = Path(directory)
     current = load_labels(queue, directory)
-    updated = record_review_label(queue, current, entry)
+    updated = _record_label(queue, current, entry)
     journal = directory / "labels.journal.jsonl"
     if updated != current:
         directory.mkdir(parents=True, exist_ok=True)
@@ -148,6 +149,13 @@ def save_label(queue, entry, directory=DEFAULT_STUDY):
     return updated
 
 
+def _record_label(queue, labels, entry):
+    if "context_review" in queue["sealed"]:
+        from gary.context_review import record_review_label as record_context_label
+        return record_context_label(queue, labels, entry)
+    return record_review_label(queue, labels, entry)
+
+
 def _own_label(label):
     if label is None:
         return None
@@ -167,18 +175,25 @@ def reviewer_view(queue, labels, reviewer_id, case_id=None):
     if case_id is not None:
         if case_id not in queue["cards"]:
             raise KeyError("Chart unavailable")
-        return {"card": deepcopy(queue["cards"][case_id]), "own_label": _own_label(latest.get(case_id))}
+        view = {"card": deepcopy(queue["cards"][case_id]), "own_label": _own_label(latest.get(case_id)),
+                "view_token": queue["queue_hash"]}
+        if "context_review" in queue["sealed"]:
+            view["overview"] = deepcopy(queue["sealed"]["context_review"]["cases"][case_id]["overview"])
+        return view
     return {"reviewer_id": reviewer_id, "reviewer_role": reviewers[reviewer_id]["role"], "order": queue["order"],
             "progress": {"total": len(queue["cards"]), "labeled": len(latest)},
             "own_labels": {case: _own_label(label) for case, label in latest.items()}}
 
 
-def _new_sources(cache):
-    """Read the three bounded research responses without changing the old cache."""
+def _new_sources(cache, symbols=FIVE_YEAR_SYMBOLS):
+    """Read bounded research responses without changing any retained raw source."""
     cache = Path(cache)
-    manifest = {row["symbol"]: row for row in json.loads((cache / "artifact-manifest.json").read_text())}
+    rows = json.loads((cache / "artifact-manifest.json").read_text())
+    manifest = {row["symbol"]: row for row in rows}
+    if len(manifest) != len(rows) or set(manifest) != set(symbols):
+        raise ValueError("Research source manifest identities differ")
     sources = []
-    for symbol in FIVE_YEAR_SYMBOLS:
+    for symbol in symbols:
         row = manifest[symbol]
         if row["file"] != f"{symbol}-chart.raw" or row["status"] != 200:
             raise ValueError("Five-year source manifest is invalid")
@@ -227,13 +242,24 @@ def load_release(directory=CYCLE3):
 
 
 def cycle3_study(key, directory=CYCLE3):
-    if key not in {"calibration", "holdout", "five-year"}:
+    if key not in {"calibration", "holdout", "holdout-original", "five-year"}:
         raise KeyError("Chart unavailable")
     directory = Path(directory)
-    if key in {"holdout", "five-year"} or (directory / "release.json").exists():
+    if key in {"holdout", "holdout-original", "five-year"} or (directory / "release.json").exists():
         release = load_release(directory)
-        queue = load_queue(directory / key)
-        if key == "holdout" and queue != release["holdout_queue"]:
+        if key == "holdout" and (directory / "holdout-context" / "queue.json").exists():
+            study = directory / "holdout-context"
+            queue = load_queue(study)
+            from gary.context_review import build_review_queue as build_context_queue
+            expected = build_context_queue(_new_sources(study / "sources", SAMPLE), {
+                "profile": "five-year-assisted-v1", "parent_queue": release["holdout_queue"],
+                "parent_release_hash": release["release_hash"]})
+            if queue != expected:
+                raise ValueError("Context cards differ from the preserved release/sources")
+            return study, queue, False
+        study = directory / ("holdout" if key == "holdout-original" else key)
+        queue = load_queue(study)
+        if key in {"holdout", "holdout-original"} and queue != release["holdout_queue"]:
             raise ValueError("Released holdout differs from the committed queue")
         if key == "five-year":
             original = {source["symbol"] for source in load_queue(directory / "calibration")["sealed"]["sources"]}
@@ -242,7 +268,8 @@ def cycle3_study(key, directory=CYCLE3):
             expected = build_review_queue(_new_sources(directory / "sources"), queue["sealed"]["config"])
             if queue != expected:
                 raise ValueError("Five-year cards differ from the preserved sources/protocol")
-        return directory / key, queue, key == "calibration"
+        context_exposed = (directory / "holdout-context" / "exposure.json").exists()
+        return study, queue, key in {"calibration", "holdout-original"} or key == "holdout" and context_exposed
     queue = load_queue(directory / key)
     if queue["schema_version"] != "pattern-review-v1" or queue["sealed"]["config"].get("profile"):
         raise ValueError("This study requires a verified cycle-3 release")
@@ -282,6 +309,53 @@ def build_cycle3(directory=CYCLE3, cache=None):
             "release_hash": release["release_hash"], "trading_approval": False}
 
 
+def build_holdout_context(directory=CYCLE3, cache=CONTEXT_CACHE):
+    """Add a separately bound historical view while preserving the original pass."""
+    from gary.context_review import build_review_queue as build_context_queue
+    directory, cache = Path(directory), Path(cache)
+    release = load_release(directory)
+    queue = build_context_queue(_new_sources(cache, SAMPLE), {
+        "profile": "five-year-assisted-v1", "parent_queue": release["holdout_queue"],
+        "parent_release_hash": release["release_hash"]})
+    study = directory / "holdout-context"
+    # Validate every source and view before making the new pass available.
+    for filename in ["artifact-manifest.json", *(f"{symbol}-chart.raw" for symbol in SAMPLE)]:
+        target = study / "sources" / filename
+        raw = (cache / filename).read_bytes()
+        if target.exists():
+            if target.read_bytes() != raw:
+                raise ValueError("Context source changed; existing evidence was preserved")
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temporary = target.with_suffix(".tmp")
+            with temporary.open("wb") as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, target)
+    calibration = load_queue(directory / "calibration")
+    overlap_pairs = sum(
+        context["raw_window"][0]["date"] <= case["as_of"]
+        and context["raw_window"][-1]["date"] >= case["start_date"]
+        and queue["sealed"]["cases"][key]["source_id"] == case["source_id"]
+        for key, context in queue["sealed"]["context_review"]["cases"].items()
+        for case in calibration["sealed"]["cases"].values()
+        if case["split"] == "calibration")
+    exposure_path = study / "exposure.json"
+    available_at = json.loads(exposure_path.read_text())["available_at_utc"] if exposure_path.exists() else datetime.now(timezone.utc).isoformat()
+    _preserve_json(exposure_path, {
+        "schema_version": "holdout-context-exposure-v1", "view_protocol": "five-year-assisted-v1",
+        "queue_hash": queue["queue_hash"], "parent_release_hash": release["release_hash"],
+        "available_at_utc": available_at, "original_view_read_only": True,
+        "prior_calibration_overlap_pairs": overlap_pairs,
+        "limitations": ["Expanded history overlaps previously exposed calibration history.",
+                        "Context observations are separate from the original holdout protocol."]})
+    _preserve_json(study / "queue.json", queue)
+    cycle3_study("holdout", directory)
+    return {"status": "ready", "context_cards": len(queue["cards"]),
+            "view_protocol": "five-year-assisted-v1", "trading_approval": False}
+
+
 def report_cycle3(directory=CYCLE3):
     from gary.evaluation import evaluate_detector
     directory = Path(directory)
@@ -295,25 +369,39 @@ def report_cycle3(directory=CYCLE3):
         if report.get("status") != "pending_labels":
             snapshot = sha256(_json_bytes(report)).hexdigest()
             _preserve_json(directory / "reports" / f"{phase}-{snapshot}.json", report)
+    if (directory / "holdout-context" / "queue.json").exists():
+        from gary.context_review import summarize_review as summarize_context
+        study, queue, _ = cycle3_study("holdout", directory)
+        report = summarize_context(queue, load_labels(queue, study))
+        report["exposure_audit"] = json.loads((study / "exposure.json").read_text())
+        _write_json(study / "private-report.json", report)
+        if report.get("status") != "pending_labels":
+            _preserve_json(study / "reports" / f"{sha256(_json_bytes(report)).hexdigest()}.json", report)
     return {"status": "saved", "recognition_scores": "coordinator-private"}
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("build", "report", "cycle3", "report-cycle3"))
-    parser.add_argument("--cache-dir", type=Path, default=ROOT / "private" / "coverage")
+    parser.add_argument("action", choices=("build", "report", "cycle3", "report-cycle3", "holdout-context"))
+    parser.add_argument("--cache-dir", type=Path)
     parser.add_argument("--study-dir", type=Path)
     args = parser.parse_args(argv)
-    directory = args.study_dir or (CYCLE3 if args.action in {"cycle3", "report-cycle3"} else DEFAULT_STUDY)
+    directory = args.study_dir or (CYCLE3 if args.action in {"cycle3", "report-cycle3", "holdout-context"} else DEFAULT_STUDY)
     if args.action == "cycle3":
         print(json.dumps(build_cycle3(directory), indent=2))
     elif args.action == "report-cycle3":
         print(json.dumps(report_cycle3(directory), indent=2))
+    elif args.action == "holdout-context":
+        print(json.dumps(build_holdout_context(directory, args.cache_dir or CONTEXT_CACHE), indent=2))
     elif args.action == "build":
-        print(json.dumps(build_study(args.cache_dir, directory), indent=2))
+        print(json.dumps(build_study(args.cache_dir or ROOT / "private" / "coverage", directory), indent=2))
     else:
         queue = load_queue(directory)
-        result = summarize_review(queue, load_labels(queue, directory))
+        if "context_review" in queue["sealed"]:
+            from gary.context_review import summarize_review as summarize_context
+            result = summarize_context(queue, load_labels(queue, directory))
+        else:
+            result = summarize_review(queue, load_labels(queue, directory))
         _write_json(directory / "private-report.json", result)
         print("Private calibration report saved. Reviewer scores remain hidden; holdout remains locked.")
 

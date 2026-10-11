@@ -75,7 +75,7 @@ class Handler(BaseHTTPRequestHandler):
             raise PermissionError("Assigned reviewer only")
         if CYCLE3_DIRECTORY is not None:
             key = params.get("study", ["five-year"])[0]
-            if key not in {"calibration", "holdout", "five-year"}:
+            if key not in {"calibration", "holdout", "holdout-original", "five-year"}:
                 raise KeyError("Chart unavailable")
             try:
                 directory, queue, readonly = cycle3_study(key, CYCLE3_DIRECTORY)
@@ -83,7 +83,14 @@ class Handler(BaseHTTPRequestHandler):
                 raise
             except (ValueError, KeyError, TypeError, IndexError, OSError) as exc:
                 raise ValueError("Study evidence could not be verified; ask the coordinator to check local artifacts") from exc
-            return directory, queue, {"study_key": key, "read_only": readonly, "studies": STUDIES}
+            context_available = (CYCLE3_DIRECTORY / "holdout-context" / "queue.json").exists()
+            context_exposed = context_available or (CYCLE3_DIRECTORY / "holdout-context" / "exposure.json").exists()
+            studies = [{**row, "title": "Holdout · five-year context"} if row["key"] == "holdout" and context_available else row
+                       for row in STUDIES]
+            if context_exposed:
+                studies.append({"key": "holdout-original", "title": "Original holdout · preserved"})
+            return directory, queue, {"study_key": key, "read_only": readonly, "studies": studies,
+                                      "view_profile": "five-year-assisted-v1" if "context_review" in queue["sealed"] else "original"}
         if params.get("study", ["calibration"])[0] != "calibration":
             raise KeyError("Chart unavailable")
         queue = load_queue(REVIEW_DIRECTORY)
@@ -162,7 +169,9 @@ class Handler(BaseHTTPRequestHandler):
                         return
                     directory, queue, metadata = self._review_context(route.query)
                     if metadata["read_only"]:
-                        raise PermissionError("This completed calibration pass is frozen")
+                        raise PermissionError("This original review pass is preserved and read-only")
+                    if metadata.get("view_profile") == "five-year-assisted-v1" and entry.get("view_token") != queue["queue_hash"]:
+                        raise ValueError("This chart view has changed. Reload it before saving your judgment.")
                     labels = save_label(queue, entry, directory)
                     self._respond(reviewer_view(queue, labels, entry["reviewer_id"], entry["case_id"]) | metadata)
                 elif self.path == "/api/reset":

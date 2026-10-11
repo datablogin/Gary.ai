@@ -61,6 +61,10 @@ The operator freezes the detector, original contexts, completed calibration labe
 
 `uv run python -m gary.review_preview report-cycle3` writes private calibration/holdout reports and preserves completed report snapshots. Incomplete holdout passes produce progress with no recognition scores. Complete reports require two exact certain reviewers, keep random/enriched and time/source-held-out strata separate, and identify the frozen version and label snapshot. Holdout feedback cannot tune that evaluated version; later recognition changes need fresh validation. Five-year charts do not constitute a five-year investment backtest.
 
+With the retained historical cache, `uv run python -m gary.review_preview holdout-context` adds five-year overviews to the original 13 holdout cards. Open `/review?study=holdout` after restarting the preview. Each overview ends at that card's historical cutoff; its final 180 bars must match the original exactly. The unchanged detail and final-20-session labeling band remain below it. Each view uses its own price index and median volume, with anonymous markers for reported splits. Provider adjustment accuracy and exchange-calendar completeness remain unverified.
+
+These additional observations use a separate `five-year-assisted-v1` queue and journal under ignored `private/cycle-3/holdout-context/`; original observations are never imported. The original view remains read-only at `/review?study=holdout-original`. Saves require the displayed view's opaque token, so older tabs must reload. Expanded history can overlap previously exposed calibration history; its separate report cannot be interpreted as the original same-view holdout score. `uv run python scripts/check_holdout_context.py` checks retained-source reconstruction and preservation on the original machine. Source data remain private and a fresh clone cannot build these real charts without its own retained cache.
+
 `make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
 
 ## Agent development cycle
@@ -79,5 +83,7 @@ Research Dot → reviewed contracts → one failing behavior test → minimum pa
 - [Third-cycle approved plan](docs/plans/2026-10-10-cycle-3.md)
 - [Third-cycle confirmed interfaces](docs/cycle-3-contracts.md)
 - [Third-cycle results and QA](docs/cycles/2026-10-10-cycle-3.md)
+- [Historical holdout context plan](docs/plans/2026-10-11-holdout-context.md)
+- [Historical holdout context delivery and QA](docs/cycles/2026-10-11-holdout-context.md)
 
 The strategy core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. The review workflow adds queue construction, versioned labels and calibration summaries. Tests use synthetic evidence and check observable behavior. The live pilot supports source-access and workflow feasibility; it is not an automatic source of reviewed candidates. Independent human labels, compliant SEC access and reviewed headquarters evidence remain required before recognition and real-data portfolio claims.
