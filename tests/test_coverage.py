@@ -332,3 +332,30 @@ def test_report_preserves_actual_decision_cutoff_for_portfolio_timing(complete_s
     assert report["buy_allowed"] is True
     assert report["as_of"] == "2026-10-09"
     assert report["decision_cutoff"] == expected_cutoff
+
+
+def test_latest_period_verification_after_decision_is_future(complete_snapshot):
+    complete_snapshot["latest_reported_period"]["verified_as_of"] = "2026-10-10"
+    original = deepcopy(complete_snapshot)
+
+    report = coverage_report(complete_snapshot, "2026-10-09")
+
+    assert report["buy_allowed"] is False
+    assert report["fields"]["latest_reported_period"]["status"] == "future"
+    assert "latest_reported_period:future" in report["blockers"]
+    assert report["normalized"]["revenue_growth"] is None
+    assert report["fields"]["latest_reported_period"]["evidence"]["source"] == original["latest_reported_period"]["source"]
+    assert complete_snapshot == original
+
+
+def test_headquarters_clearance_reviewing_future_dates_is_future(complete_snapshot):
+    complete_snapshot["headquarters"]["lookback_end"] = "2026-10-10"
+    original = deepcopy(complete_snapshot)
+
+    report = coverage_report(complete_snapshot, "2026-10-09")
+
+    assert report["buy_allowed"] is False
+    assert report["fields"]["headquarters"]["status"] == "future"
+    assert "headquarters:future" in report["blockers"]
+    assert report["fields"]["headquarters"]["evidence"]["source"] == original["headquarters"]["source"]
+    assert complete_snapshot == original

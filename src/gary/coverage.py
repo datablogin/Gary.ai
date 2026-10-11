@@ -96,7 +96,10 @@ def _latest_status(record, cutoff):
             return "future"
         if start > end:
             return "incomparable"
-        if date.fromisoformat(record["verified_as_of"]) < cutoff.date():
+        verified_as_of = date.fromisoformat(record["verified_as_of"])
+        if verified_as_of > cutoff.date():
+            return "future"
+        if verified_as_of < cutoff.date():
             return "stale"
         return "available"
     except (KeyError, TypeError, ValueError):
@@ -117,6 +120,8 @@ def _headquarters_status(record, cutoff):
         return "unreviewed"
     try:
         start, end = date.fromisoformat(record["lookback_start"]), date.fromisoformat(record["lookback_end"])
+        if end > cutoff.date():
+            return "future"
         return "available" if start <= cutoff.date() <= end else "unreviewed"
     except (KeyError, TypeError, ValueError):
         return "unreviewed"

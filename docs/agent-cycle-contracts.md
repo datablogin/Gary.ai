@@ -12,6 +12,8 @@ The caller can distinguish access failure, missing field, unsupported security, 
 
 The concrete normalized snapshot schema is in [coverage-schema.md](coverage-schema.md). Reports preserve the aware `decision_cutoff` timestamp as well as the New York `as_of` date. Portfolio entries require a report for the signal date whose actual cutoff is no later than that session's 16:00 New York close. A report computed after close is not silently relabeled as close-time evidence.
 
+Cycle 2 additionally blocks claimed headquarters review through future dates and latest-period verification after the decision date. Reviewed negative headquarters evidence and latest-period verification must cover the decision date without claiming later information. Fetch timestamps remain provenance, independent of publication time.
+
 ## Pattern recognition
 
 `detect_patterns(bars: list[dict], as_of: str) -> list[dict]`

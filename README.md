@@ -4,7 +4,7 @@ An investment learning project for investors with deep knowledge of US equity fu
 
 ## Status
 
-The first research, TDD, local deployment and independent QA cycle is implemented. The strategy is documented; data and chart recognition remain experimental. No investment performance has been validated.
+The first research, TDD, local deployment and independent QA cycle is implemented. Cycle 2 adds a local real-chart review workflow and expanded source controls. The strategy is documented; chart recognition and investment performance remain unvalidated.
 
 ## Workflow
 
@@ -37,6 +37,17 @@ make preview
 
 Open http://127.0.0.1:4175. The preview is explicitly synthetic and records paper state under ignored `private/`. Run, repeat and reset demonstrate the daily-step interface. It binds only to localhost.
 
+On the original machine with the private eight-symbol pilot cache:
+
+```bash
+make review
+make preview
+```
+
+Open http://127.0.0.1:4175/review for anonymous chart labeling. The frozen study has 180-session views and a 20-session completion band. Choose completed patterns, none, uncertain or unreviewable; saves and explicit revisions preserve history. Holdout charts and predictions are hidden. The server is assigned to Gary by default; reviewer identity cannot be switched through HTTP. This is trusted local research, not a multi-user authentication system.
+
+Queue metadata, cached bars and labels are ignored under `private/cycle-2/`. Rebuilding reproduces the study and refuses to replace a different active queue. A fresh clone lacks these private source files; synthetic paper mode remains runnable. `uv run python -m gary.review_preview report` writes a coordinator-private calibration summary. Only exact agreement between the two registered reviewers enters recognition counts; pending and uncertain labels do not become negatives. No recognition score is shown during labeling.
+
 `make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
 
 ## Agent development cycle
@@ -47,5 +58,10 @@ Research Dot → reviewed contracts → one failing behavior test → minimum pa
 - [Approved agent plan](docs/plans/2026-10-10-agent-cycle.md)
 - [Reusable role briefs](docs/prompts/2026-10-10-agent-cycle.md)
 - [First-cycle results](docs/cycles/2026-10-10-first-cycle.md)
+- [Second-cycle plan](docs/plans/2026-10-10-cycle-2.md)
+- [Second-cycle contracts](docs/cycle-2-contracts.md)
+- [Second-cycle data audit](docs/research/2026-10-10-cycle-2-data.md)
+- [Second-cycle sampling protocol](docs/research/2026-10-10-cycle-2-patterns.md)
+- [Second-cycle results and QA](docs/cycles/2026-10-10-cycle-2.md)
 
-The core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. Tests use synthetic evidence and check observable behavior. The live pilot supports data-access feasibility only; it is not an automatic source of reviewed candidates. Subsequent cycles should collect independent real-chart labels and resolve classification, financial freshness and headquarters evidence gaps before enabling a real-data portfolio.
+The strategy core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. The review workflow adds queue construction, versioned labels and calibration summaries. Tests use synthetic evidence and check observable behavior. The live pilot supports source-access and workflow feasibility; it is not an automatic source of reviewed candidates. Independent human labels, compliant SEC access and reviewed headquarters evidence remain required before recognition and real-data portfolio claims.
