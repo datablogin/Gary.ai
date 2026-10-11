@@ -104,7 +104,34 @@
       "sealed": "config, full source receipts/input fingerprints, cases, detector_manifest, reference, exclusions, eligible frame sizes and sampling memberships; all bound before labels",
       "cases": "canonical identity, source/cutoff/full window/input180 hashes, target dates, immutable predictions from last180 only and target20, memberships random/enriched, exposure overlap; exact raw bars for independent reproduction",
       "reference": "training-round-reference-v1 commitment: protocol, detector_manifest, prediction_hash, inputs_hash, context_sessions=180, visual_context_years=5; commitment_hash excludes itself, no queue_hash circularity",
-      "queue_hash": "canonical hash of entire queue excluding queue_hash; token exactly equals this hash"
+      "queue_hash": "canonical hash of entire queue excluding queue_hash; token exactly equals this hash",
+      "concrete_layout": {
+        "sealed.reference": {
+          "schema_version": "training-round-reference-v1",
+          "protocol": {
+            "target_sessions": 20,
+            "match_tolerance_sessions": 3,
+            "minimum_availability_delay_sessions": 0,
+            "match": "same_kind_earliest_unused_within_three_sessions_never_early_availability"
+          },
+          "detector_manifest": "trusted v1 object",
+          "prediction_hash": "hash of {case_id:case.predictions}",
+          "inputs_hash": "hash of {case_id:hash(case.raw_window)}",
+          "context_sessions": 180,
+          "visual_context_years": 5,
+          "commitment_hash": "hash of reference excluding commitment_hash"
+        },
+        "sealed.cases[case_id]": "raw_window exact180, visible_dates same180 dates, window_hash hash(raw_window), as_of, memberships, raw_context full5y, context_hash hash(raw_context), canonical/source/target/provenance fields",
+        "cards[case_id]": "anonymous detail plus overview object normalized from full5y; HTTP exposes card and overview separately",
+        "generated_label_stamps": {
+          "view_protocol": "training-five-year-v1",
+          "view_token": "queue_hash",
+          "overview_hash": "hash(cards[case_id].overview)",
+          "reference_hash": "sealed.reference.commitment_hash",
+          "detector_version": "trusted v1 version",
+          "reference_detector_input_sessions": 180
+        }
+      }
     },
     "labels": {
       "required": [

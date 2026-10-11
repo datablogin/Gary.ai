@@ -1,9 +1,9 @@
 ---
 mode: launch
-status: running
+status: paused
 execution_shape: SERIAL
 harness_recommendation: codex
-launch_status: launched
+launch_status: paused
 ---
 
 # Train more dispatch manifest
@@ -19,7 +19,7 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | ID / session label | Owner | State now | Prerequisite and release condition |
 | --- | --- | --- | --- |
 | A0 / train-more-contracts | Coordinator | VERIFIED | Human plan/interface approval and SHIP review exist. |
-| A1 / train-more-diagnostics | Evidence developer | READY | A0 contract and preservation checks independently pass. |
+| A1 / train-more-diagnostics | Evidence developer | PAUSED_IN_PROGRESS | A0 contract and preservation checks independently pass. |
 | A2 / train-more-rounds | Round developer | NOT_READY | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | NOT_READY | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | NOT_READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
@@ -179,3 +179,17 @@ Suggested full-pipeline launch instruction: Launch A0–A5 from docs/dispatch/20
 - Launch authorization: user selected full pipeline with Codex on October11,2026. Starting SHA b2f3923d60b562e831f53fe4dbecbabcbaad6f75.
 - A0: coordinator train-more-contracts; contracts frozen, broad received-byte preservation baseline captured. Verification pending. No product changes.
 - A0 independently verified: contract JSON five seams/thirteen cases, both documents reviewed against approved policy, all430 preservation fingerprints matched, git diff --check passed. A1 READY.
+- A1 launched as collaboration subagent /root/training_diagnostics, session train-more-diagnostics; verified prerequisite SHA f582f13568aa0460547c0efbb10a1583a749efb3. Existing386 tests independently passed in20.29s. Concrete reference/layout recipe recorded in contracts before A2.
+
+## Safe pause checkpoint — October11,2026
+
+The user explicitly requested a safe pause before losing internet while traveling. Full A0–A5 selection and approvals remain valid for an explicit later resume; no dependent starts while paused. The active /root/training_diagnostics worker was told to checkpoint and then interrupted after a bounded wait. No workers remain active.
+
+- A0 VERIFIED: five approved seams and thirteen literal cases frozen; concrete A1/A2 reference layout clarification saved. Preservation baseline covers430 files under ignored private/training.
+- A1 IN PROGRESS: new training_analysis.py and its synthetic tests are saved, not delivered as a completed assignment. Supervisor ran uv run pytest tests/test_training_analysis.py -q:29 passed in1.65s. Training-round comparison, exclusion/matching/stamp controls and first original-release receipt fixture are present. Earlier existing386 tests passed in20.29s.
+- A1 remaining: finish original-release coherent-forgery/receipt/revision/missing-chronology controls, review contract conformance, generate and independently replay immutable real current-pass diagnostic from actual receipt-bound snapshot; record vertical TDD evidence. No real report has been generated at this checkpoint. Do not treat passing partial tests as the A1 exit gate.
+- A2–A5 NOT_READY and never launched. Resume A1 first; only independent full manifest verification may release A2. No speculative detector candidate or QA result exists.
+- Preservation independently checked:430/430 original files byte-identical. Frozen detector/review/evaluation, saved human judgments, old studies and paper state remain intact. git diff --check passed.
+- Local preview on4175 is the existing cycle3 process and remains unchanged. New module is not imported by the app. No bootstrap/allocation or human-label writes were performed.
+
+Resume instruction: continue the already-approved full Codex pipeline from paused A1; retain existing work, read this manifest/contracts, recheck hashes and partial tests, finish A1 gates, then proceed serially A2–A5. Do not restart A0, fabricate labels, or launch dependents based solely on this partial checkpoint. If latest commit was not pushed before disconnection, verify/push it before continuing.
