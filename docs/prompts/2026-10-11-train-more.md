@@ -1,14 +1,14 @@
 # Train more role briefs
 
-All agents read the reviewed/approved plan, research and scorecard. Coordinator alone commits/integrates. Do not edit frozen patterns.py/review.py/evaluation.py or any prior private source, release, queue, journal, snapshot, reveal or paper state. No product implementation or tests until human confirms the plan/seams. No agent supplies primary market judgments in this cycle.
+All agents read the reviewed/approved plan, research and scorecard. Coordinator alone commits/integrates. Do not edit frozen patterns.py/review.py/evaluation.py or any prior private source, release, queue, journal, snapshot, reveal or paper state. No product implementation or tests until human confirms the plan and the two additional analysis/request seams; existing detector/queue/label/summary logical seams remain approved. No agent supplies primary market judgments in this cycle.
 
 ## Evidence developer
 
-Own src/gary/training_analysis.py and tests/test_training_analysis.py. Reuse the verified locked human pass; inspect its events/rationale privately only for development diagnostics, never publish its distributions or case mappings. Keep180 reference input distinct from five-year visual evidence. Implement the single-investor diagnostic interface through observed vertical red/green. Derive an error inventory without equating disagreements or buy/hold prose with rule defects. Return private immutable report fingerprints. Freeze shared JSON report contracts with coordinator before the next developer starts.
+Own src/gary/training_analysis.py and tests/test_training_analysis.py. Reuse the verified locked human pass; inspect its events/rationale privately only for development diagnostics, never publish its distributions or case mappings. Keep180 reference input distinct from five-year visual evidence. Implement the single-investor diagnostic interface through observed vertical red/green. Derive an error inventory without equating disagreements or buy/hold prose with rule defects. Return private immutable report fingerprints. Verify the original pass fingerprint against the trusted existing reveal receipt, rather than a later revision or detector release alone. Freeze shared JSON report contracts with coordinator before the next developer starts.
 
 ## Training-round developer
 
-Own src/gary/training.py and tests/test_training.py. Only approved pure build/record/summary/request seams. Implement selection/admission, no fabricated coverage, exact target/canonical identity ledger exclusions, one active round, stable request/config/source fingerprints, generated view/version stamps and completed snapshots. Same-input deterministic behavior, missing/uncertain evidence and resume/failure are outcomes. No networking/persistence/UI edits. One behavior test -> observed red -> minimum green.
+Own src/gary/training.py and tests/test_training.py. Only approved pure build/record/summary/request seams. Implement selection/admission, no fabricated coverage, exact target/canonical identity ledger exclusions, one active round, stable request/config/source fingerprints, conservative legacy exposure bootstrap, generated view/version stamps and completed snapshots. Same-input deterministic behavior, missing/uncertain evidence and resume/failure are outcomes. No networking/persistence/UI edits. One behavior test -> observed red -> minimum green.
 
 ## Conditional pattern developer
 
@@ -16,7 +16,7 @@ Start only if an inventory finding supports an explicit reviewed behavioral requ
 
 ## Independent engineering QA
 
-Use fresh context; own scripts/check_training_workflow.py and final QA evidence only after coordinator freezes HTTP/shared schemas. Inspect private real artifacts by hash, not market judgments. Supply all fake labels in temporary stores. Challenge coherent queue/reference/manifest tampering, source/catalog aliases, target/reservation overlap, absent/old tokens after partial tails, races and crash boundaries, single active round, late revisions and leakage of incomplete-batch answers. Probe Train more through real HTTP and browser DOM. Candidate manifests cannot dispatch arbitrary code or trade. Report concrete failures to authors, then retest fixes.
+Use fresh context; own scripts/check_training_workflow.py and final QA evidence only after coordinator freezes HTTP/shared schemas. Inspect private real artifacts by hash, not market judgments. Supply all fake labels in temporary stores. Challenge coherent queue/reference/manifest tampering, missing legacy exposure provenance, source/catalog aliases, target/reservation overlap, absent/old tokens after partial tails, races and crash boundaries, single active round, late revisions and leakage of incomplete-batch answers. Probe Train more through real HTTP and browser DOM. Candidate manifests cannot dispatch arbitrary code or trade. Report concrete failures to authors, then retest fixes.
 
 ## Coordinator
 

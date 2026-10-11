@@ -1,5 +1,5 @@
 ---
-status: draft
+status: reviewed
 ---
 
 # Comparison, detector improvement and Train more
@@ -17,11 +17,11 @@ Train more gathers evidence for rule improvement, rather than claiming automatic
 0. **Reviewed approval and seams** — persist these four artifacts; three fresh non-author lenses critique them. Human approves the concrete scope and proposed added/versioned seams before tests or dispatch. No recurring automation.
 1. **Locked-pass diagnostics** — evidence developer owns new src/gary/training_analysis.py and tests/test_training_analysis.py. Verify the completed pre-reveal human snapshot against its queue/view and trusted original release. Produce a coordinator-private per-case error inventory and aggregate descriptive event comparisons. Classify differences as matched, unmatched prediction, unmatched observation, uncertain/invalid, context-policy ambiguity or demonstrated rule violation. Do not infer a rule violation from disagreement alone or treat buy/hold prose as a completed pattern label. Save an immutable diagnostic under its input/protocol hash.
 2. **Training-round core** — round developer owns new src/gary/training.py and tests/test_training.py. Implement deterministic admitted-source selection, one active round, explicit request idempotency, frozen prediction commitments, single-human labeling/revisions, completed snapshots, resume and round history. No filesystem/network in these pure seams. The coordinator freezes shared JSON contracts before parallel implementation; phase2 may start only after phase1 report contracts are fixed.
-3. **Train more application integration** — coordinator owns new src/gary/training_preview.py, changes to preview.py, static/review.html and static/index.html, new static/training.html, README/Makefile and isolated QA script. Add Train more links from the portfolio/review pages and a local /learn hub with progress, round history, completed diagnostics and data-needed state. One POST /api/training/round creates/resumes; fixed-whitelist GET /api/training and /api/training/card and POST /api/training/label reuse assigned identity/origin and bounded JSON rules. Do not relax legacy routes. Buttons are explicit user actions, not background optimization.
+3. **Train more application integration** — coordinator owns new src/gary/training_preview.py, changes to preview.py, src/gary/static/review.html and src/gary/static/index.html, new src/gary/static/training.html, README/Makefile. Add Train more links from the portfolio/review pages and a local /learn hub with progress, round history, completed diagnostics and data-needed state. One POST /api/training/round creates/resumes; fixed-whitelist GET /api/training and /api/training/card and POST /api/training/label reuse assigned identity/origin and bounded JSON rules. Do not relax legacy routes. Buttons are explicit user actions, not background optimization.
 4. **Conditional detector correction** — after inventory/adjudication proves a behavioral requirement, pattern developer owns new src/gary/patterns_v2.py and tests/test_patterns_v2.py. Use the existing detect_patterns(bars, as_of) seam: one observed failing regression, minimum correction, green, causal prefix/append invariance. Keep v1 bytes and prior releases intact. Register the candidate with source/parameter/input-context fingerprints in the coordinator-owned trusted registry. If no defensible change exists, record retain_v1 without a speculative v2.
-5. **Independent QA and local delivery** — fresh engineering QA reviews/probes; it supplies no primary market judgments. Check public seams, actual UI, persistence/fault/concurrency behavior, snapshot integrity, exposure boundaries and version isolation. Fix failures through meaningful regressions, then make verify and push final code/evidence. Initial delivery is runnable Train more plus diagnostics; no required future human labels or fresh-source evaluation result is presumed complete.
+5. **Independent QA and local delivery** — fresh engineering QA owns scripts/check_training_workflow.py and final QA evidence, and reviews/probes; it supplies no primary market judgments. Check public seams, actual UI, persistence/fault/concurrency behavior, snapshot integrity, exposure boundaries and version isolation. Fix failures through meaningful regressions, then make verify and push final code/evidence. Initial delivery is runnable Train more plus diagnostics; no required future human labels or fresh-source evaluation result is presumed complete.
 
-## Proposed test interfaces to confirm with implementation approval
+## Confirmed logical seams and two proposed additions
 
 | Public seam | Contract |
 | --- | --- |
@@ -31,17 +31,19 @@ Train more gathers evidence for rule improvement, rather than claiming automatic
 | training.summarize_review(queue, labels) | Progress while incomplete; after the sole human completes the round, seal/pass hash and explicitly personal development diagnostics. No synthetic second reviewer; old consensus summary untouched. |
 | request_training_round(catalog, history, request) | Pure transition returning immutable round/history records or resume/needs_data/conflict. catalog contains validated retained series/classification/source receipts; request contains nonempty request_id and frozen config. Same id+payload is identical; conflicting reuse fails. Any existing incomplete round resumes instead of allocating another. |
 
-The detector seam is already confirmed. These five new/versioned contracts require confirmation before writing tests; all labels retain completed/none/uncertain/invalid and the same three kinds/final20 completion offsets. Future candidate/evaluation additions must use a separately confirmed contract rather than being hidden in this cycle.
+The detector seam is already confirmed. The queue/label/summary logical seams were already confirmed; the new training namespace preserves those signatures. Only analyze_training_pass and request_training_round add test boundaries to confirm with implementation approval; all labels retain completed/none/uncertain/invalid and the same three kinds/final20 completion offsets. Future candidate/evaluation additions must use a separately confirmed contract rather than being hidden in this cycle.
 
 ## Comparison semantics
 
 Reference inputs remain180 sessions for this cycle; five-year visual assistance is stamped and prominently identified in completed diagnostics. Matching is same-kind, one-to-one, earliest-unused predictions within three sessions of labeled completion, with availability no earlier than labeled completion and no later than the case cutoff, following the recorded v1 rule. Match only final20 target events. Sort events deterministically by kind/date; duplicate events are rejected. Zero-denominator fractions are null. Uncertain/invalid observations are unscored, with coverage/exclusion counts. Random and enriched strata retain memberships and separate descriptive denominators; an overlapping case is counted once in overall totals and once per applicable stratum.
 
-The current pass was completed before identity reveal but uses wider visual history and previously exposed issuers. Record snapshot, reveal/exposure and input-context fingerprints. Explicit revisions after completion/reveal create a new development snapshot and cannot replace the preserved pass or be substituted into its report. Existing consensus reports remain pending if their required pass is absent. Do not call this an independent holdout or a strategy return result.
+The current pass was completed before identity reveal but uses wider visual history and previously exposed issuers. Bind the original-pass canonical payload hash to the trusted existing identity-reveal receipt’s gary_pass_snapshot_sha256 and queue_hash, plus its recorded revealed_at_utc. The frozen detector release is a prediction anchor, not a label chronology anchor. Validate all recorded receipt/snapshot relationships; a later revised payload cannot satisfy the original receipt. Existing journal timestamps/prefix commitments may corroborate chronology where available; do not retroactively invent a pre-reveal prefix commitment. Missing/conflicting chronology is explicitly reveal_timing_unknown and development-only. Explicit revisions after completion/reveal create a new development snapshot and cannot replace the preserved pass or be substituted into its report. Existing consensus reports remain pending if their required pass is absent. Do not call this an independent holdout or a strategy return result.
 
 ## Training selection and state
 
-Default max12, up to6 random plus6 signal-enriched; deterministic seed/config and actual frames recorded. Deduplicate source/cutoff/window identity and retain memberships. Reject previously labeled final20 intervals and exact case duplicates across all prior calibration, exploration, assisted and training passes, including aliases through canonical catalog identity. Reject overlap with any reserved validation source or full viewed context. Previously exposed broader history may be reused only as training with its overlap recorded.
+Before round allocation, the adapter bootstraps an immutable exposure manifest from every known prior queue/view, completed snapshot, reveal and source reservation. Canonical aliases and viewed/target intervals must be attributable to retained receipts; missing prior artifacts, unknown identity lineage or unverifiable intervals produce needs_data/admission exclusions, never an empty-ledger assumption. No legacy artifact is edited.
+
+Default max12, up to6 random plus6 signal-enriched; deterministic seed/config and actual frames recorded. Deduplicate source/cutoff/window identity and retain memberships. Reject previously labeled final20 intervals and exact case duplicates across all prior calibration, exploration, assisted and training passes, including aliases through canonical catalog identity. Reject overlap with any active validation reservation’s canonical source or full context interval. Historical releases retain their original roles; after exposure their evidence may serve as development for a later version, and is never reclassified as unseen validation. Previously exposed broader history may be reused only as training with its overlap recorded.
 
 Five-year interval is open-left (cutoff minus five calendar years, cutoff], Feb29 clamps to Feb28, minimum1200 sessions, first session within7 days, exact endpoint, no post-cutoff bars, complete finite ordered OHLCV and explicit source/timezone/price-basis/split metadata. New training rounds reject full-view reported splits. Reviewed source classification is required; missing cache/classification/coverage or too few distinct targets yields admitted smaller batch or needs_data, never fabricated bars or financial clearance. Data import/validation is an operator adapter; no automatic external fetch in this cycle.
 
@@ -63,3 +65,35 @@ Current exposed evidence and future Train more batches are development data. Any
 - Preservation: capture before/after hashes of every old source, queue, release, journal, materialized label, completed-pass/reveal and paper artifact. Keep comparison scores/label findings and provider data out of git/public docs. Local only; no brokerage, MCP hosting, external deployment, subscriptions, fundamentals build, investment-policy change or Sharpe/backtest claim.
 
 Rollback: stop localhost or disable the new /learn route through a new commit; retain every training journal, snapshot, source receipt and exposure record. Restore the prior research-version selection explicitly without changing any completed release/report. Legacy review stays available; assisted-view exposure keeps the original pass read-only. Candidate failure or missing data leaves v1 available and no paper transaction is triggered.
+
+## Literal acceptance cases to freeze before tests
+
+| Case | Expected behavior |
+| --- | --- |
+| Label completion -4; prediction completion/availability -1 | Same-kind single event matches at the inclusive +3 boundary. |
+| Label -4; prediction completion/availability 0 | No match: four-session completion error. |
+| Label 0; prediction completion/availability -1 | No match: availability predates the human completion despite close dates. |
+| One certain matched case with random+enriched membership | One case/event in overall totals and one in each stratum; no double overall count. |
+| Uncertain or invalid case with detector events | Entire case unscored; no negative label or false-positive count. Zero scored denominators yield null fractions. |
+| Otherwise valid context with1199/1200 sessions | Reject1199; admit1200 under the other source/interval gates. |
+| Otherwise valid context starts anniversary+7/+8 days | Admit+7; reject+8. |
+| Cutoff2024-02-29 | Anniversary2019-02-28; exclude the anniversary bar itself; no bars after cutoff. |
+| Later revised pass vs original reveal receipt | Cannot replace/satisfy the original committed pass; original report retained, new diagnostic snapshot separately attributed. |
+| Missing legacy queue/alias/target or full-view interval evidence | Fail admission conservatively with needs_data/exclusions; never silently initialize empty exposure history. |
+| Ready/labeling round A; request B | Resume A; no second active round or extra exposure allocation. |
+| Same request ID, changed payload | Conflict without mutation. Identical retry reproduces/resumes existing records. |
+| Bad token after acknowledged revision and partial journal tail | Reject before repair, cache rewrite, label append or exposure change. |
+
+These are independent specification examples for the already planned seams, not test code or current real-judgment findings.
+
+## Review (2026-10-11)
+
+Verdict: **SHIP**. Three fresh, read-only, non-author lenses reviewed all four artifacts and rechecked the contract clarifications once. No blocking finding; all five advisories resolved. Status is reviewed, not approved. Human approval of this concrete plan and the two additional analysis/request test boundaries is next, followed by dispatch. Existing queue/label/summary/detector logical approvals remain in force.
+
+| Lens | Finding and resolution | Final verdict |
+| --- | --- | --- |
+| Feasibility | QA now solely owns scripts/check_training_workflow.py with coordinator integration; static paths are repository-rooted. Separate single-human namespace fits frozen-module constraints. | SHIP, no remaining findings |
+| Verifiability | Added literal matching/admission/state outcomes; original completed-pass hash must match the existing reveal receipt rather than a later revision or detector release alone. No retrospective chronology commitment is invented. | SHIP, no remaining findings |
+| Scope/risk | Made conservative legacy exposure/alias/interval bootstrap explicit; missing evidence fails admission. Distinguished active validation reservations from historical exposed releases without rewriting old roles. | SHIP, no remaining findings |
+
+Planning artifacts were committed/pushed before review. This reviewed revision is likewise persisted to main and remote-verified. No product code, tests, primary judgments or prior private artifacts changed during shaping/review.
