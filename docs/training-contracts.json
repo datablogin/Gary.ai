@@ -1,0 +1,341 @@
+{
+  "schema_version": "train-more-contracts-v1",
+  "encoding": {
+    "canonical_payload": "UTF-8 JSON, sorted keys, compact separators, allow_nan=False; SHA-256",
+    "received_file": "SHA-256 of retained file bytes; distinct from canonical payload digest",
+    "identity": "canonical_id is an operator-reviewed issuer identity; every symbol/source alias must be attributable to retained lineage evidence"
+  },
+  "policy": {
+    "profile": "training-five-year-v1",
+    "detector_version": "causal-geometry-v1",
+    "context_years": 5,
+    "reference_detector_input_sessions": 180,
+    "target_sessions": 20,
+    "minimum_sessions": 1200,
+    "maximum_start_gap_days": 7,
+    "max_cases": 12,
+    "random_cases": 6,
+    "enriched_cases": 6,
+    "match_tolerance_sessions": 3,
+    "minimum_availability_delay_sessions": 0,
+    "reviewer_id": "gary",
+    "reviewer_role": "human",
+    "price_basis": "provider_received_ohlc",
+    "splits": "reject any reported split in full open-left five-year context",
+    "classification": "reviewed operating_common on supported US exchange; vendor EQUITY is insufficient"
+  },
+  "objects": {
+    "config": {
+      "required": [
+        "profile",
+        "reviewer_id",
+        "random_seed",
+        "shuffle_seed",
+        "id_salt",
+        "detector_manifest",
+        "exposure"
+      ],
+      "fixed": "profile training-five-year-v1; reviewer_id nonempty assigned human; seeds integers excluding bool; id_salt nonempty; frozen policy above applies, no HTTP override",
+      "detector_manifest": "version, parameter_hash, source_file_sha256 must equal locally trusted v1; context_sessions=180 may be stamped in derived reference",
+      "exposure": "complete training-exposure-v1 ledger described below; builder requires it, never defaults to empty"
+    },
+    "source": {
+      "required": [
+        "source_id",
+        "symbol",
+        "canonical_id",
+        "aliases",
+        "alias_evidence",
+        "classification",
+        "source_sha256",
+        "fetched_at",
+        "exchange_timezone",
+        "price_basis",
+        "split_dates",
+        "bars",
+        "cutoffs"
+      ],
+      "bars": "canonical ordered unique ISO dates and finite positive OHLC/valid relationships/nonnegative volume; full retained input, no mutation",
+      "cutoffs": "explicit ordered unique completed-session dates present in bars; reject/ignore no future bars in selected window; sampler records actual eligible frames",
+      "aliases": "includes source_id and symbol; alias_evidence has reviewed=true and nonempty receipt_sha256 plus provenance; unknown lineage excludes source",
+      "classification": "reviewed=true, security_type=operating_common, exchange=NASDAQ|NYSE|NYSE_AMERICAN|NYSE_ARCA|CBOE_BZX, evidence_sha256 and provenance; only universe classification, not fundamental buy clearance",
+      "provenance": "source_sha256 is retained raw received-file digest; fetched_at offset timestamp; valid timezone; explicit split_dates; adapter must reparse raw bytes and compare full source instead of trusting embedded self-declared hashes"
+    },
+    "catalog": {
+      "required": [
+        "schema_version",
+        "sources",
+        "exposure"
+      ],
+      "schema_version": "training-catalog-v1",
+      "sources": "list of source objects",
+      "exposure": "must equal current history exposure on allocation; complete conservative bootstrap required"
+    },
+    "exposure": {
+      "required": [
+        "schema_version",
+        "complete",
+        "evidence",
+        "aliases",
+        "targets",
+        "views",
+        "reservations"
+      ],
+      "schema_version": "training-exposure-v1",
+      "complete": "strict boolean; false or missing provenance produces needs_data, not empty ledger",
+      "evidence": "list of {path, received_sha256}; retained legacy artifacts and reviewed identity receipts; no fabricated pre-reveal prefix commitment",
+      "aliases": "mapping alias string -> canonical_id; sources must agree",
+      "targets": "list of {canonical_id,start,end,case_fingerprint,provenance}; all historically human-labeled target20 intervals including revisions and aliases; overlap inclusive excludes allocation",
+      "views": "list of {canonical_id,start,end,provenance}; all historically displayed full contexts. Broader-view overlap allowed development only, recorded in cases",
+      "reservations": "list of {canonical_id,start,end,active,provenance}; active future-validation canonical source OR interval overlap denied; historical exposed releases keep prior roles and are not active future reservations",
+      "missing": "unknown queue/alias/target/view provenance blocks affected sources or complete ledger; no guessed empty history"
+    },
+    "queue": {
+      "schema_version": "pattern-training-review-v1",
+      "required": [
+        "schema_version",
+        "study_id",
+        "order",
+        "cards",
+        "sealed",
+        "queue_hash"
+      ],
+      "cards": "anonymous normalized 180-session detail plus five-year overview; offsets only, no identity/dates/predictions",
+      "sealed": "config, full source receipts/input fingerprints, cases, detector_manifest, reference, exclusions, eligible frame sizes and sampling memberships; all bound before labels",
+      "cases": "canonical identity, source/cutoff/full window/input180 hashes, target dates, immutable predictions from last180 only and target20, memberships random/enriched, exposure overlap; exact raw bars for independent reproduction",
+      "reference": "training-round-reference-v1 commitment: protocol, detector_manifest, prediction_hash, inputs_hash, context_sessions=180, visual_context_years=5; commitment_hash excludes itself, no queue_hash circularity",
+      "queue_hash": "canonical hash of entire queue excluding queue_hash; token exactly equals this hash"
+    },
+    "labels": {
+      "required": [
+        "study_id",
+        "queue_hash",
+        "entries"
+      ],
+      "entries": "append-only canonical server-derived history; sole assigned human; revision and supersedes_revision plus view_protocol, view_token, overview_hash, reference_hash, detector_version/input stamps; never caller-authoritative generated stamps",
+      "entry": "case_id, reviewer_id, decision, rationale, events, expected_revision, revise, view_token; events exact {kind, completion_offset}; kinds inverse_head_shoulders|cup_handle|head_shoulders_top; offsets -19..0 integers; completed iff nonempty events, none/uncertain/invalid empty; rationale max1000",
+      "retry": "identical normalized latest label idempotent, preserving original acknowledged history; changed label requires explicit revise=true and current expected_revision; stale/missing token always fails first",
+      "snapshot": "complete sole-human history immutable by canonical hash; later explicit revisions seal new superseding development snapshot; original snapshot/report remains retained"
+    },
+    "history": {
+      "schema_version": "training-history-v1",
+      "required": [
+        "schema_version",
+        "exposure",
+        "rounds",
+        "requests"
+      ],
+      "rounds": "ordered list {round_id,status,queue,labels,snapshots}; status derived ready -> labeling -> complete, at most one ready/labeling; immutable previous queues/snapshots; labels append only",
+      "requests": "mapping request_id -> {payload_hash,round_id,outcome}; idempotency retained in authoritative transaction, not materialized cache",
+      "transition": "pure output includes status, round_id/round if present, history, exclusions; no caller input mutation; needs_data is non-round outcome; invalid coherent commitments raise ValueError"
+    },
+    "request": {
+      "required": [
+        "request_id",
+        "config"
+      ],
+      "request_id": "nonempty bounded string",
+      "config": "config object without exposure permitted for request; current catalog/history exposure injected by transition; source/catalog/exposure fingerprints bound to allocated round",
+      "conflict": "same request_id changed request payload -> ValueError before any mutation; identical retry reproduces/resumes recorded outcome; a new id with active round resumes that round without extra allocation"
+    },
+    "analysis_reference": {
+      "original_release": {
+        "required": [
+          "kind",
+          "release",
+          "parent_queue",
+          "reveal_receipt"
+        ],
+        "kind": "original_release",
+        "validation": "rebuild exact release via freeze_evaluation(parent_queue,release.calibration_labels) against trusted frozen executables; assisted queue parent/context hashes and 180 raw tails must reconcile; receipt from retained file with canonical pass and queue digests, revealed_at_utc offset timestamp; canonical pass change cannot satisfy original receipt",
+        "chronology": "valid receipt binds locked snapshot before identity delivery; timing unknown if no valid receipt or conflicting anchors; do not forge an earlier prefix. Missing receipt null may yield reveal_timing_unknown development-only; conflicting present receipt fails"
+      },
+      "training_round": {
+        "required": [
+          "kind",
+          "commitment"
+        ],
+        "kind": "training_round",
+        "commitment": "exact sealed queue.reference; independent trusted source/version/commit-before-display ownership enforced by adapter; pure seam reproduces input/prediction commitments and sole-human stamped history",
+        "chronology": "development round, no independence assertion; optional prior snapshot hash attributes revisions, never substitutes original receipt"
+      }
+    },
+    "diagnostic": {
+      "schema_version": "training-diagnostic-v1",
+      "required": [
+        "schema_version",
+        "mode",
+        "status",
+        "queue_hash",
+        "pass_hash",
+        "reference_hash",
+        "reference_detector_input_sessions",
+        "visual_context_years",
+        "chronology",
+        "coverage",
+        "overall",
+        "by_stratum",
+        "inventory",
+        "limitations",
+        "report_hash"
+      ],
+      "mode": "single_investor_diagnostic",
+      "status": "complete only after all sole-human cases reviewed; pending has coverage and no comparison/inventory",
+      "overall": "per-kind certain_cases/predicted_events/labeled_events/matched_events/unmatched_prediction_events/unmatched_label_events/signed_completion_errors_sessions/availability_delays_sessions/prediction_match_fraction/label_match_fraction",
+      "by_stratum": "same per-kind fields separately random/enriched; overlap counted once overall and once per applicable stratum",
+      "inventory": "private case-level matched/unmatched observations/predictions, uncertain/invalid, context-policy ambiguity or demonstrated requirement with explicit reproducible requirement evidence. Disagreement and prose alone never establish defect",
+      "report_hash": "canonical output excluding report_hash; no timestamps/non-deterministic values"
+    },
+    "http": {
+      "GET /api/training": "whitelisted assigned-user hub, own progress/order/history; incomplete no predictions/identities/receipts/diagnostics; completed personal diagnostics allowed",
+      "GET /api/training/card": "round_id and case_id fixed lookups; own_label, card, overview, view_token",
+      "POST /api/training/round": "{request_id}; server freezes assigned config; cannot choose file/module/threshold; active round resumes",
+      "POST /api/training/label": "{round_id, case_id, reviewer_id, decision, rationale, events, expected_revision, revise, view_token}; server identity strict; token checked against immutable durable queue before any recovery write",
+      "guards": "localhost host/origin, bounded JSON <=16KiB, lock; read-only old routes unchanged",
+      "persistence": "single authoritative append/fsync transaction binds request, round, queue, exposure, labels and completed snapshot before ack; materialized views atomic/replaceable; partial unacked tails archived only after valid action. Every replay revalidates trusted registry/source/legacy evidence; missing evidence fails closed",
+      "paths": "operator --training-dir only; no HTTP path selection; synthetic QA only disposable isolated store; production private/training; frozen legacy and paper never mutated"
+    }
+  },
+  "seams": {
+    "analyze_training_pass": {
+      "inputs": [
+        "queue",
+        "completed_pass",
+        "reference"
+      ],
+      "outputs": "diagnostic object; private immutable replay inputs; no filesystem writes/network",
+      "bindings": "queue, complete single human history, reference variant, actual executable manifest/context180, canonical snapshot and receipt, predictions reproduced",
+      "failures": "ValueError corrupt/incomplete/changed/conflicting evidence; missing chronology explicitly timing_unknown as above"
+    },
+    "build_review_queue": {
+      "inputs": [
+        "series",
+        "config"
+      ],
+      "outputs": "queue object; empty order with admission exclusions when no candidates, to be exposed by request as needs_data",
+      "bindings": "strict training-only profile/one human; trusted180 executable/version/parameters; complete source/classification/alias/exposure receipts; deterministic config/seed/input/window/cutoff/reference hashes",
+      "failures": "ValueError malformed config/coherent commitments; invalid/missing candidate provenance admission exclusion; never shorten five years"
+    },
+    "record_review_label": {
+      "inputs": [
+        "queue",
+        "labels",
+        "entry"
+      ],
+      "outputs": "new labels history with derived version/view/input stamps; identical retry returns same history",
+      "bindings": "sole human, exact view_token before other action, normalized event/revision controls; immutable input",
+      "failures": "ValueError missing/stale token, unknown case/reviewer, malformed events, conflicting revisions or history"
+    },
+    "summarize_review": {
+      "inputs": [
+        "queue",
+        "labels"
+      ],
+      "outputs": "status ready|labeling|complete, progress, own_labels; complete adds canonical completed_pass/pass_hash plus personal diagnostic from training reference; pending diagnostic null",
+      "bindings": "single human, complete snapshots separately retained by adapter; no relaxed legacy consensus",
+      "failures": "ValueError corrupt queue/history/reference; no answers in incomplete summaries"
+    },
+    "request_training_round": {
+      "inputs": [
+        "catalog",
+        "history",
+        "request"
+      ],
+      "outputs": "transition with history, status created|resumed|needs_data, round_id/round where present, exclusions",
+      "bindings": "one active round, immutable previous records, canonical aliases/target exclusion/reservations, request conflict/idempotency and commitment before display",
+      "failures": "ValueError conflict or malformed/coherently forged durable history; incomplete catalog/exposure returns needs_data without round allocation"
+    }
+  },
+  "acceptance_cases": [
+    {
+      "id": "match_inclusive_three",
+      "label": -4,
+      "prediction_completion": -1,
+      "prediction_availability": -1,
+      "expected": "matched"
+    },
+    {
+      "id": "match_four_reject",
+      "label": -4,
+      "prediction_completion": 0,
+      "prediction_availability": 0,
+      "expected": "unmatched"
+    },
+    {
+      "id": "no_early_availability",
+      "label": 0,
+      "prediction_completion": -1,
+      "prediction_availability": -1,
+      "expected": "unmatched"
+    },
+    {
+      "id": "overlap_memberships",
+      "memberships": [
+        "random",
+        "enriched"
+      ],
+      "expected": "one overall and one per stratum"
+    },
+    {
+      "id": "uncertain_invalid",
+      "decisions": [
+        "uncertain",
+        "invalid"
+      ],
+      "expected": "unscored whole case; no false positive; zero denominator fractions null"
+    },
+    {
+      "id": "minimum_sessions",
+      "sessions": [
+        1199,
+        1200
+      ],
+      "expected": [
+        "exclude",
+        "admit if all other gates pass"
+      ]
+    },
+    {
+      "id": "start_gap",
+      "days": [
+        7,
+        8
+      ],
+      "expected": [
+        "admit if all other gates pass",
+        "exclude"
+      ]
+    },
+    {
+      "id": "leap_anniversary",
+      "cutoff": "2024-02-29",
+      "anniversary": "2019-02-28",
+      "expected": "open-left excludes anniversary; never post-cutoff input"
+    },
+    {
+      "id": "revised_original_pass",
+      "expected": "cannot satisfy original receipt; retain original report; separate new development snapshot"
+    },
+    {
+      "id": "missing_legacy_provenance",
+      "expected": "needs_data or affected-source exclusion, never empty exposure assumption"
+    },
+    {
+      "id": "one_active",
+      "active": [
+        "ready",
+        "labeling"
+      ],
+      "request": "new id",
+      "expected": "resume active; no extra exposure allocation"
+    },
+    {
+      "id": "request_retry_conflict",
+      "expected": "same id/payload stable; changed payload conflict before mutation"
+    },
+    {
+      "id": "bad_token_partial_tail",
+      "expected": "reject before repair/cache/append/exposure change"
+    }
+  ]
+}

@@ -1,14 +1,14 @@
 ---
-mode: brief
-status: prepared
+mode: launch
+status: running
 execution_shape: SERIAL
 harness_recommendation: codex
-launch_status: not_launched
+launch_status: launched
 ---
 
 # Train more dispatch manifest
 
-Date: October 11, 2026, America/Chicago. Human explicitly approved the reviewed plan and the two new analysis/request test interfaces, then requested dispatch-wave. Plan approval is recorded in [the approved plan](../plans/2026-10-11-train-more.md). Review verdict is SHIP with no unresolved findings. This invocation is brief mode: no implementation assignments were selected/launched from an existing manifest. The approval gate passes; the launch-selection gate remains pending.
+Date: October 11, 2026, America/Chicago. Human explicitly approved the reviewed plan and the two new analysis/request test interfaces, then requested dispatch-wave. Plan approval is recorded in [the approved plan](../plans/2026-10-11-train-more.md). Review verdict is SHIP with no unresolved findings. The user explicitly selected the full SERIAL pipeline A0–A5 with Codex: “Launch the full pipeline with Codex.” Each dependent launches only after independent prerequisite verification. Both approval and launch-selection gates pass.
 
 Read-first companion artifacts: [research](../research/2026-10-11-train-more.md), [scorecard](../scorecards/2026-10-11-train-more.md), [role briefs](../prompts/2026-10-11-train-more.md), CONTEXT.md, and the approved plan. No applicable AGENTS.md/CLAUDE.md, local dispatch skill or dispatch template exists. The checkout was clean on main before recording approval. Existing runtime/dependencies suffice; tool/dependency installation is not authorized by this dispatch.
 
@@ -18,8 +18,8 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 
 | ID / session label | Owner | State now | Prerequisite and release condition |
 | --- | --- | --- | --- |
-| A0 / train-more-contracts | Coordinator | READY | Human plan/interface approval and SHIP review exist. |
-| A1 / train-more-diagnostics | Evidence developer | NOT_READY | A0 contract and preservation checks independently pass. |
+| A0 / train-more-contracts | Coordinator | VERIFIED | Human plan/interface approval and SHIP review exist. |
+| A1 / train-more-diagnostics | Evidence developer | READY | A0 contract and preservation checks independently pass. |
 | A2 / train-more-rounds | Round developer | NOT_READY | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | NOT_READY | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | NOT_READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
@@ -166,10 +166,16 @@ Coordinator independently reruns these checks, compares the A0 baseline, verifie
 
 ## Supervisor record and launch options
 
-No assignments launched in this brief. Current counts: READY1 (A0), NOT_READY5 (A1–A5 with listed dependency reasons). There are no unresolved scope/ownership overlaps, credentials or plan-review findings. Contract freeze, real-source admission and candidate evidence remain explicit execution dependencies, not claims of completion.
+Launch selected: A0–A5, Codex harness, serial execution. A0 contract preparation is running; A1–A5 retain their prerequisite gates. There are no unresolved scope/ownership overlaps, credentials or plan-review findings. Contract freeze, real-source admission and candidate evidence remain explicit execution dependencies, not claims of completion.
 
 At launch record selected IDs, harness, session labels, actual full SHA, verify-by outputs/artifact fingerprints, readiness transitions and any skipped assignment/outcome. Retain_v1 is a verified A4 outcome, not a hidden skip. Do not mark gates passed from self-report or fabricate future human labels.
 
 Human may select A0 alone, or explicitly authorize the full SERIAL pipeline A0–A5 using Codex, with each selected dependent launched only after independent prerequisite verification and its transition to READY. Plan approval alone is not that selection. Manual-paste is also supported by combining the standard preamble and the selected assignment prompt.
 
 Suggested full-pipeline launch instruction: Launch A0–A5 from docs/dispatch/2026-10-11-train-more.md using the Codex harness. Run them serially, launching each only after its prerequisites are independently verified and it is READY. For A4, implement v2 only if its evidence gate passes; otherwise record retain_v1. This explicitly selects the dependent assignments for execution when ready and does not require repeated launch approval for the same selection.
+
+## Execution log
+
+- Launch authorization: user selected full pipeline with Codex on October11,2026. Starting SHA b2f3923d60b562e831f53fe4dbecbabcbaad6f75.
+- A0: coordinator train-more-contracts; contracts frozen, broad received-byte preservation baseline captured. Verification pending. No product changes.
+- A0 independently verified: contract JSON five seams/thirteen cases, both documents reviewed against approved policy, all430 preservation fingerprints matched, git diff --check passed. A1 READY.
