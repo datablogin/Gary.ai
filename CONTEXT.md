@@ -67,7 +67,7 @@ A simulated dedicated stock portfolio starting with $200,000 in cash. Its positi
 The percentage change in the latest reported quarter’s revenue compared with the same quarter of the previous year.
 
 **Candidate priority**:
-The order in which eligible entry candidates receive available allocation slots, starting with the lowest volatility. The volatility measure remains unresolved.
+The order in which eligible entry candidates receive available allocation slots, starting with the lowest volatility. Volatility is measured over the last 12 months; the calculation convention is a provisional implementation choice.
 
 **Management screen**:
-Gary’s assessment of management through evidence of headquarters investment and significant SG&A increases. The evidence and decision thresholds remain unresolved.
+Gary’s assessment of management through evidence of headquarters investment and significant SG&A increases. New headquarters investment is a hard exclusion; a 25% SG&A increase is considered large and requires investigation.

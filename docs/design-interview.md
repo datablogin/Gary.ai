@@ -81,3 +81,14 @@ These examples describe Gary’s reasoning. They are not verified current financ
 - Management consideration: avoid companies that invested in a new headquarters, with a large SG&A increase named as a signal. Measurement, evidence requirements, and gate versus flag behavior remain unresolved.
 - Data approach: start with open-source/free-access sources; research paid subscriptions later. Provider, licensing, freshness, and completeness remain to be assessed.
 - Autonomous execution is for the simulated paper portfolio. Brokerage integration remains deferred.
+
+## Interview close
+
+Gary requested a summary and transition to next steps. Further interview rounds are deferred; unresolved implementation details will use explicitly labeled provisional defaults.
+
+- After the first portfolio loss event, sell again after another 10% loss; denominator remains a provisional implementation choice.
+- Rank candidates by volatility over the last 12 months.
+- New headquarters investment is a hard exclusion. A 25% SG&A increase is considered large; SG&A alone is not proof of headquarters investment.
+- Technical paper sells execute autonomously.
+
+See strategy-v1.md for the consolidated specification and implementation-plan.md for the build sequence.
