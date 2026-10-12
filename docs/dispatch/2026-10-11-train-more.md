@@ -1,9 +1,9 @@
 ---
 mode: launch
-status: running
+status: complete
 execution_shape: SERIAL
 harness_recommendation: codex
-launch_status: running
+launch_status: complete
 ---
 
 # Train more dispatch manifest
@@ -23,7 +23,7 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | A2 / train-more-rounds | Round developer | VERIFIED | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | VERIFIED | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | VERIFIED | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
-| A5 / train-more-qa | Fresh independent QA | RUNNING | A3 finished and A4 decision verified; candidate tests if applicable. |
+| A5 / train-more-qa | Fresh independent QA | VERIFIED | A3 finished and A4 decision verified; candidate tests if applicable. |
 
 Readiness is evaluated again immediately before each launch. Dependency status does not become READY merely because an agent says it finished. Supervisor runs the literal verify-by commands and checks stated exit conditions, then records the result. Agents never launch other assignments themselves. A4 always has a bounded decision outcome; a v2 is not required to complete the approved workflow. If an input is missing, needs_data is supported; a failed implementation gate is not equivalent to that supported outcome.
 
@@ -166,7 +166,7 @@ Coordinator independently reruns these checks, compares the A0 baseline, verifie
 
 ## Supervisor record and launch options
 
-Launch selected: A0–A5, Codex harness, serial execution. A0 contract preparation is running; A1–A5 retain their prerequisite gates. There are no unresolved scope/ownership overlaps, credentials or plan-review findings. Contract freeze, real-source admission and candidate evidence remain explicit execution dependencies, not claims of completion.
+Launch selected and completed: A0–A5, Codex harness, serial execution. All six assignments independently verified, including the bounded A4 retain_v1 outcome and A5 correction/recheck loop. There are no unresolved scope/ownership overlaps, credentials or plan-review findings. Contract freeze, real-source admission and candidate evidence remain explicit execution dependencies, not claims of completion.
 
 At launch record selected IDs, harness, session labels, actual full SHA, verify-by outputs/artifact fingerprints, readiness transitions and any skipped assignment/outcome. Retain_v1 is a verified A4 outcome, not a hidden skip. Do not mark gates passed from self-report or fabricate future human labels.
 
@@ -209,3 +209,7 @@ Human explicitly requested resume the pipeline. Checkpoint a7f53bb108197d06841da
 - A4 independently verified October12: immutable retain_v1 decision received SHA6afce50291fe3676f25705dbe6b40554c79eeca3bc8f3bc4f5c6bcd00a3f3750 matched;42 detector tests,430 preservation hashes and diff check passed. No separate candidate or fresh validation claim. A5 READY.
 
 - A5 launched as fresh /root/training_engineering_qa, session train-more-qa, after all dependencies independently verified at SHA6921cf190d22f57c6e6bdb6089911fbb4ee3a279 (remote equal). QA owns only the synthetic workflow probe and public engineering evidence; coordinator retains product/git/delivery ownership.
+
+- A5 independently verified October12 against integrated SHAf28d08402ea72413fd0a70ea6d0c51bf77959a1a: make verify545 tests in29.51s; all seven isolated QA probe groups, py_compile, exact worker-output hashes and430 preservation fingerprints passed. One observed exhaustion-status regression was returned to coordinator, minimally corrected and independently rechecked. Actual browser completed/report/new-round/history/reload acceptance already passed on disposable4176 state. Final localhost delivery and durable commit equality remain below.
+
+- Final local delivery October12: coordinator started verified cycle3 preview on free127.0.0.1:4175 (owned session9956); live health/learn200, prepared trusted v1 training hub, exact retained baseline report fingerprint and original holdout read-only gate passed. Actual browser displayed enabled Train more and collapsed earlier completed pass; screenshot saved only under ignored private/training/qa/learn-final.png. No production request/label transaction, source fetch or paper action. All430 preservation fingerprints match. Disposable4176/4177 servers closed. All selected assignments VERIFIED; final public-only commit/push and full-SHA equality are the durable delivery check.

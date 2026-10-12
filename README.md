@@ -85,6 +85,8 @@ Requests, allocations, exposure and labels are committed together in an append-a
 
 The cached pilot bootstrap reserves every known prior target conservatively and records broader history as development exposure. New rounds exclude reused targets, alias duplicates, active future-validation reservations and reported full-view splits. Missing provenance or exhausted targets produces a data-needed state. A fresh clone lacks the private source/exposure evidence and cannot silently allocate charts. No source fetching occurs here.
 
+On the original machine, `uv run python scripts/check_training_workflow.py --port 4177` independently checks the HTTP workflow, recovery, privacy and retained-state guards with disposable synthetic data. It requires the private preservation baseline and closes its child servers.
+
 An operator may import a reviewed retained bundle with `uv run python -m gary.training_preview import --bundle PATH --training-dir DIRECTORY`. The bundle contains catalog/config, source receipt adapters and byte-hashed evidence paths; import refuses to replace a different existing bootstrap. Source augmentation and new validation corpora must retain the full prior exposure history in a separately reviewed import. An isolated `--training-dir` supports synthetic QA without writing real judgments or paper state.
 
 ## Agent development cycle
@@ -105,5 +107,9 @@ Research Dot → reviewed contracts → one failing behavior test → minimum pa
 - [Third-cycle results and QA](docs/cycles/2026-10-10-cycle-3.md)
 - [Historical holdout context plan](docs/plans/2026-10-11-holdout-context.md)
 - [Historical holdout context delivery and QA](docs/cycles/2026-10-11-holdout-context.md)
+- [Train more approved plan](docs/plans/2026-10-11-train-more.md)
+- [Train more contracts](docs/training-contracts.md)
+- [Train more dispatch and verification](docs/dispatch/2026-10-11-train-more.md)
+- [Train more integration evidence](docs/cycles/2026-10-11-training-integration.md)
 
 The strategy core has three pure interfaces: coverage reports, causal pattern recognition and paper daily execution. The review workflow adds queue construction, versioned labels and calibration summaries. Tests use synthetic evidence and check observable behavior. The live pilot supports source-access and workflow feasibility; it is not an automatic source of reviewed candidates. Independent human labels, compliant SEC access and reviewed headquarters evidence remain required before recognition and real-data portfolio claims.
