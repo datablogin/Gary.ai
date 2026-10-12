@@ -1,9 +1,9 @@
 ---
 mode: launch
-status: paused
+status: running
 execution_shape: SERIAL
 harness_recommendation: codex
-launch_status: paused
+launch_status: running
 ---
 
 # Train more dispatch manifest
@@ -19,7 +19,7 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | ID / session label | Owner | State now | Prerequisite and release condition |
 | --- | --- | --- | --- |
 | A0 / train-more-contracts | Coordinator | VERIFIED | Human plan/interface approval and SHIP review exist. |
-| A1 / train-more-diagnostics | Evidence developer | PAUSED_IN_PROGRESS | A0 contract and preservation checks independently pass. |
+| A1 / train-more-diagnostics | Evidence developer | RUNNING | A0 contract and preservation checks independently pass. |
 | A2 / train-more-rounds | Round developer | NOT_READY | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | NOT_READY | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | NOT_READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
@@ -193,3 +193,7 @@ The user explicitly requested a safe pause before losing internet while travelin
 - Local preview on4175 is the existing cycle3 process and remains unchanged. New module is not imported by the app. No bootstrap/allocation or human-label writes were performed.
 
 Resume instruction: continue the already-approved full Codex pipeline from paused A1; retain existing work, read this manifest/contracts, recheck hashes and partial tests, finish A1 gates, then proceed serially A2–A5. Do not restart A0, fabricate labels, or launch dependents based solely on this partial checkpoint. If latest commit was not pushed before disconnection, verify/push it before continuing.
+
+## Resume — October12,2026
+
+Human explicitly requested resume the pipeline. Checkpoint a7f53bb108197d06841da78e4e556a82fd769a0d is clean on main and equals remote. Supervisor rechecked430 preservation hashes and29 partial analysis tests (passed in0.87s). A0 remains verified; A1 resumes with its previous ownership and incomplete exit gate. A2–A5 remain dependency-gated. Existing uv is /Users/robertwelborn/.local/bin/uv (not on this shell PATH); existing .venv/bin/python also works. No dependency installation needed.
