@@ -20,7 +20,7 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | --- | --- | --- | --- |
 | A0 / train-more-contracts | Coordinator | VERIFIED | Human plan/interface approval and SHIP review exist. |
 | A1 / train-more-diagnostics | Evidence developer | VERIFIED | A0 contract and preservation checks independently pass. |
-| A2 / train-more-rounds | Round developer | READY | A0 passed; A1 report contract/analysis seam independently verified. |
+| A2 / train-more-rounds | Round developer | RUNNING | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | NOT_READY | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | NOT_READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
 | A5 / train-more-qa | Fresh independent QA | NOT_READY | A3 finished and A4 decision verified; candidate tests if applicable. |
@@ -199,3 +199,4 @@ Resume instruction: continue the already-approved full Codex pipeline from pause
 Human explicitly requested resume the pipeline. Checkpoint a7f53bb108197d06841da78e4e556a82fd769a0d is clean on main and equals remote. Supervisor rechecked430 preservation hashes and29 partial analysis tests (passed in0.87s). A0 remains verified; A1 resumes with its previous ownership and incomplete exit gate. A2–A5 remain dependency-gated. Existing uv is /Users/robertwelborn/.local/bin/uv (not on this shell PATH); existing .venv/bin/python also works. No dependency installation needed.
 
 - A1 independently verified October12:52 analysis tests passed in10.04s; literal actual queue/release/receipt-bound snapshot replay matched immutable report 3716891b919b643fce954497faf586aba8803a7c44495995538a9ec20dbc40ad;430 original received-byte fingerprints and git diff --check passed. Original two-reviewer artifacts remain unchanged. A2 READY.
+- A2 launched as /root/training_rounds, session train-more-rounds; A1 full-SHA77ac1aaf49ec851b95ceca33608bcee0474d24d6 verified. Owner only new training core/tests/TDD evidence. No application or legacy writes yet.
