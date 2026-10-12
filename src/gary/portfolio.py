@@ -12,7 +12,7 @@ def _positive(value):
 
 def _technical_exit(signal, signal_date):
     try:
-        return (signal.get("kind") == "head_shoulders_top" and signal.get("status") == "completed"
+        return (signal.get("kind") in {"head_shoulders_top", "rolling_over"} and signal.get("status") == "completed"
                 and signal.get("direction") == "sell" and signal.get("available_at") == signal_date
                 and date.fromisoformat(signal["completion_date"]) <= date.fromisoformat(signal_date))
     except (KeyError, TypeError, ValueError):
@@ -40,7 +40,7 @@ def _admissible(item, signal_date):
             and date.fromisoformat(coverage["as_of"]) == cutoff
             and report_cutoff.tzinfo is not None and report_cutoff <= session_close
             and signal.get("direction") == "buy" and signal.get("status") == "completed"
-            and signal.get("kind") in {"inverse_head_shoulders", "cup_handle"}
+            and signal.get("kind") in {"inverse_head_shoulders", "cup_handle", "breaking_out"}
             and signal.get("available_at") == signal_date
             and date.fromisoformat(signal["completion_date"]) <= cutoff
             and isinstance(value, (int, float)) and not isinstance(value, bool) and isfinite(value) and value >= 0

@@ -30,6 +30,15 @@ def test_buys_whole_blocks_within_eight_thousand_dollars():
     assert result["state"]["cash"] == 192200.0
 
 
+def test_confirmed_breakout_buys_whole_blocks_at_the_next_session_open():
+    item = candidate()
+    item["signal"]["kind"] = "breaking_out"
+    result = step_portfolio(state(), market([item], {"SYNTH": 26}), "2026-10-12")
+    assert result["orders"] == [{"symbol": "SYNTH", "side": "buy", "shares": 300, "price": 26.0}]
+    assert result["state"]["positions"] == {"SYNTH": {"shares": 300, "wapp": 26.0}}
+    assert result["state"]["cash"] == 192200.0
+
+
 def test_blocked_evidence_cannot_create_a_buy():
     item = candidate()
     item["coverage"]["buy_allowed"] = False
@@ -87,6 +96,23 @@ def test_other_mandatory_exits_sell_the_whole_position(reason):
     result = step_portfolio(portfolio, prices, "2026-10-12")
     assert result["state"]["positions"] == {}
     assert result["orders"][0]["side"] == "sell"
+
+
+def test_completed_rollover_sells_all_blocks_at_the_next_open_without_rebuy():
+    portfolio = state()
+    portfolio["cash"] = 188000
+    portfolio["positions"] = {"SYNTH": {"shares": 300, "wapp": 40}}
+    item = candidate()
+    item["signal"]["kind"] = "breaking_out"
+    prices = market([item], opens={"SYNTH": 41}, closes={"SYNTH": 40})
+    prices["sell_signals"] = [{"symbol": "SYNTH", "kind": "rolling_over", "direction": "sell",
+                               "status": "completed", "available_at": "2026-10-09",
+                               "completion_date": "2026-10-09"}]
+    result = step_portfolio(portfolio, prices, "2026-10-12")
+    assert result["orders"] == [{"symbol": "SYNTH", "side": "sell", "shares": 300,
+                                 "price": 41.0, "reasons": ["technical_exit"]}]
+    assert result["state"]["positions"] == {}
+    assert result["state"]["cash"] == 200300
 
 
 def losing_portfolio():
@@ -240,3 +266,105 @@ def test_qa_report_cutoff_must_not_include_after_close_evidence(cutoff):
     item = candidate()
     item["coverage"]["decision_cutoff"] = cutoff
     assert step_portfolio(state(), market([item], {"SYNTH": 20}), "2026-10-12")["orders"] == []
+
+
+def expanded_synthetic_bars(count, current_prices):
+    """Explicit synthetic chart ending at the existing market's signal date."""
+    from datetime import date, timedelta
+    dates = []
+    day = date(2026, 10, 9)
+    while len(dates) < count:
+        if day.weekday() < 5:
+            dates.append(day.isoformat())
+        day -= timedelta(days=1)
+    bars = [{"date": day, "open": 40, "high": 40, "low": 39, "close": 40, "volume": 1000}
+            for day in reversed(dates)]
+    bars[-1].update(current_prices)
+    return bars
+
+
+def test_detector_breakout_with_passing_fundamentals_can_enter_the_paper_seam():
+    from gary.patterns_v2 import detect_patterns
+    bars = expanded_synthetic_bars(22, {"high": 41, "close": 40.21})
+    item = candidate()
+    item["signal"] = detect_patterns(bars, "2026-10-09")[0]
+    result = step_portfolio(state(), market([item], {"SYNTH": 41}), "2026-10-12")
+    assert result["orders"] == [{"symbol": "SYNTH", "side": "buy", "shares": 100, "price": 41}]
+    assert result["state"]["cash"] == 195900
+
+
+def test_detector_gap_with_passing_fundamentals_never_buys_or_exits_a_holding():
+    from gary.patterns_v2 import detect_patterns
+    bars = expanded_synthetic_bars(2, {"open": 40.8, "high": 41, "low": 40, "close": 40.3})
+    gap = detect_patterns(bars, "2026-10-09")[0]
+    assert (gap["kind"], gap["direction"]) == ("gapping_up", "observation")
+    item = candidate()
+    item["signal"] = gap
+    prices = market([item], {"SYNTH": 41}, {"SYNTH": 40.3})
+    prices["sell_signals"] = [{**gap, "symbol": "SYNTH"}]
+    result = step_portfolio(state(), prices, "2026-10-12")
+    assert result["orders"] == []
+    assert result["state"]["cash"] == 200000
+
+    held = state()
+    held["cash"] = 188000
+    held["positions"] = {"SYNTH": {"shares": 300, "wapp": 40}}
+    result = step_portfolio(held, prices, "2026-10-12")
+    assert result["orders"] == []
+    assert result["state"]["positions"] == {"SYNTH": {"shares": 300, "wapp": 40}}
+    assert result["state"]["cash"] == 188000
+
+
+def test_detector_rollover_exits_the_whole_position_through_the_paper_seam():
+    from gary.patterns_v2 import detect_patterns
+    bars = expanded_synthetic_bars(52, {"low": 38, "close": 38.8})
+    signal = detect_patterns(bars, "2026-10-09")[0]
+    portfolio = state()
+    portfolio["cash"] = 188000
+    portfolio["positions"] = {"SYNTH": {"shares": 300, "wapp": 40}}
+    prices = market(opens={"SYNTH": 38.5}, closes={"SYNTH": 38.8})
+    prices["sell_signals"] = [{**signal, "symbol": "SYNTH"}]
+    result = step_portfolio(portfolio, prices, "2026-10-12")
+    assert result["orders"] == [{"symbol": "SYNTH", "side": "sell", "shares": 300,
+                                 "price": 38.5, "reasons": ["technical_exit"]}]
+    assert result["state"]["cash"] == 199550
+
+
+@pytest.mark.parametrize("failure", ["blocked", "unknown", "future_coverage", "future_signal",
+                                      "incomplete", "wrong_direction", "short_history", "too_expensive"])
+def test_breakout_does_not_bypass_existing_buy_gates(failure):
+    item = candidate()
+    item["signal"]["kind"] = "breaking_out"
+    if failure == "blocked":
+        item["coverage"].update(buy_allowed=False, blockers=["headquarters_unreviewed"])
+    if failure == "unknown": item["coverage"]["eligibility"] = "unknown"
+    if failure == "future_coverage": item["coverage"]["as_of"] = "2026-10-12"
+    if failure == "future_signal": item["signal"]["available_at"] = "2026-10-12"
+    if failure == "incomplete": item["signal"]["status"] = "forming"
+    if failure == "wrong_direction": item["signal"]["direction"] = "observation"
+    if failure == "short_history": item["volatility"]["return_count"] = 100
+    price = 81 if failure == "too_expensive" else 26
+    result = step_portfolio(state(), market([item], {"SYNTH": price}), "2026-10-12")
+    assert result["orders"] == []
+    assert result["state"]["cash"] == 200000
+
+
+@pytest.mark.parametrize("failure", ["future_availability", "old_availability", "future_completion",
+                                      "missing_completion", "incomplete", "wrong_direction"])
+def test_unavailable_or_incomplete_rollover_does_not_exit(failure):
+    portfolio = state()
+    portfolio["cash"] = 188000
+    portfolio["positions"] = {"SYNTH": {"shares": 300, "wapp": 40}}
+    signal = {"symbol": "SYNTH", "kind": "rolling_over", "direction": "sell", "status": "completed",
+              "available_at": "2026-10-09", "completion_date": "2026-10-09"}
+    if failure == "future_availability": signal["available_at"] = "2026-10-12"
+    if failure == "old_availability": signal["available_at"] = "2026-10-08"
+    if failure == "future_completion": signal["completion_date"] = "2026-10-12"
+    if failure == "missing_completion": signal.pop("completion_date")
+    if failure == "incomplete": signal["status"] = "forming"
+    if failure == "wrong_direction": signal["direction"] = "observation"
+    prices = market(opens={"SYNTH": 41}, closes={"SYNTH": 40})
+    prices["sell_signals"] = [signal]
+    result = step_portfolio(portfolio, prices, "2026-10-12")
+    assert result["orders"] == []
+    assert result["state"]["positions"] == portfolio["positions"]
