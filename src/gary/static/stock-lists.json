@@ -1,0 +1,356 @@
+{
+  "buy_list": [],
+  "buy_shortfall_reason": "No fully qualified buys in this bounded review. BKE was the only fresh entry signal among 129 complete chart histories; its 4.6% quarterly revenue growth fails the fundamental rule. Other management and comparability reviews remain incomplete.",
+  "chart_histories_attempted": 133,
+  "chart_histories_reviewed": 129,
+  "detector_source_sha256": "76e3e7c08f482a09126593bd375534ff92a1007a971b38ca5fb016966c3ced8a",
+  "detector_version": "causal-geometry-v1",
+  "entry_signal_count": 1,
+  "entry_symbols": [
+    "BKE"
+  ],
+  "limitations": [
+    "This is a dated research snapshot, not an automatic daily feed or an all-market screen. A broad discovery screen plus focused research produced 133 chart histories; four lacked the required 180 sessions and were excluded. Quote availability and issuer classification are separate gates.",
+    "Pattern detection is experimental v1; independent recognition accuracy remains unvalidated.",
+    "Headquarters clearance and comparable SG&A are incomplete for the growth candidates.",
+    "No actual holdings were supplied; purchase-price stops cannot be assessed.",
+    "Raw market data and received evidence are retained privately."
+  ],
+  "market_close": "2026-10-09",
+  "parameter_hash": "d1e59ce553b98cfffa41b2ce956ffdbd170f3883e9ec5a1fab6a22b91e23cbae",
+  "prepared_at": "2026-10-12T19:45:19.344409+00:00",
+  "requested_size": 10,
+  "reviewed_as_of": "2026-10-12",
+  "schema_version": "gary-equity-lists-v1",
+  "selection_policy": "Only fully qualified buys; fewer than ten when the evidence supports fewer.",
+  "sell_list": [
+    {
+      "annual_regular_dividend": 10.08,
+      "company": "Amgen Inc.",
+      "dividend_yield": 0.024296767948120045,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:35.788664+00:00",
+      "period": "Q2 2026",
+      "period_end": "2026-06-30",
+      "price": 414.8699951171875,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-08-04",
+      "revenue_current_millions": 10054,
+      "revenue_growth": 0.09532628826669565,
+      "revenue_prior_millions": 9179,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://investors.amgen.com/news-releases/news-release-details/amgen-reports-second-quarter-2026-financial-results/"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/AMGN/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "AMGN",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 16.1,
+      "trailing_pe": 25.76832267808618,
+      "why": "Latest quarterly revenue grew 9.5%; the rule requires growth above 15%. Faster growth in selected medicines does not replace consolidated revenue."
+    },
+    {
+      "annual_regular_dividend": 3.68,
+      "company": "QUALCOMM Incorporated",
+      "dividend_yield": 0.02096866096866097,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:35.894196+00:00",
+      "period": "Q3 FY2026",
+      "period_end": "2026-06-28",
+      "price": 175.5,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-07-29",
+      "revenue_current_millions": 9947,
+      "revenue_growth": -0.04032802701398941,
+      "revenue_prior_millions": 10365,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.sec.gov/Archives/edgar/data/804328/000080432826000085/qcom062826erex991.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/QCOM/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "QCOM",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 8.64,
+      "trailing_pe": 20.3125,
+      "why": "Latest quarterly revenue fell 4.0%; the rule requires growth above 15%. Automotive and IoT growth do not override the consolidated result."
+    },
+    {
+      "annual_regular_dividend": 1.08,
+      "company": "Sirius XM Holdings Inc.",
+      "dividend_yield": 0.04073934329217293,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:36.254979+00:00",
+      "period": "Q2 2026",
+      "period_end": "2026-06-30",
+      "price": 26.510000228881836,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-07-30",
+      "revenue_current_millions": 2160,
+      "revenue_growth": 0.010289990645462987,
+      "revenue_prior_millions": 2138,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.sec.gov/Archives/edgar/data/908937/000090893726000020/siriq22026earningsrelease.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/SIRI/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "SIRI",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 2.5,
+      "trailing_pe": 10.604000091552734,
+      "why": "Latest quarterly revenue grew 1.0%; the rule requires growth above 15%."
+    },
+    {
+      "annual_regular_dividend": 2.12,
+      "company": "The Coca-Cola Company",
+      "dividend_yield": 0.024077228012744253,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:36.333147+00:00",
+      "period": "Q2 2026",
+      "period_end": "2026-07-03",
+      "price": 88.05000305175781,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-07-28",
+      "revenue_current_millions": 13380,
+      "revenue_growth": 0.06741124850418823,
+      "revenue_prior_millions": 12535,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://investors.coca-colacompany.com/filings-reports/all-sec-filings/content/0001628280-26-049922/a2026q2earningsreleaseex-9.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/KO/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "KO",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 3.33,
+      "trailing_pe": 26.44144235788523,
+      "why": "Latest quarterly revenue grew 6.7%; the rule requires growth above 15%."
+    },
+    {
+      "annual_regular_dividend": 5.92,
+      "company": "PepsiCo, Inc.",
+      "dividend_yield": 0.046995315889756854,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:36.706807+00:00",
+      "period": "Q3 2026",
+      "period_end": "2026-09-05",
+      "price": 125.97000122070312,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-10-08",
+      "revenue_current_millions": 25274,
+      "revenue_growth": 0.05585495258386608,
+      "revenue_prior_millions": 23937,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747626000050/q320268-kxexhibit991.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/PEP/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "PEP",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 7.95,
+      "trailing_pe": 15.845283172415487,
+      "why": "Latest quarterly revenue grew 5.6%; the rule requires growth above 15%. The October 8 Q3 release is the latest report."
+    },
+    {
+      "annual_regular_dividend": 2.83,
+      "company": "Verizon Communications Inc.",
+      "dividend_yield": 0.06794717638225299,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:30:37.045994+00:00",
+      "period": "Q2 2026",
+      "period_end": "2026-06-30",
+      "price": 41.650001525878906,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-07-24",
+      "revenue_current_millions": 34253,
+      "revenue_growth": -0.007274518896359883,
+      "revenue_prior_millions": 34504,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.verizon.com/about/news/verizon-delivers-record-2q26-results"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/VZ/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "VZ",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 3.84,
+      "trailing_pe": 10.846354564030966,
+      "why": "Latest quarterly revenue fell 0.7%; the rule requires growth above 15%. A high dividend yield cannot override the growth failure."
+    },
+    {
+      "annual_regular_dividend": 1.4,
+      "company": "The Buckle, Inc.",
+      "dividend_yield": 0.031702898660268986,
+      "failed_gate": "revenue_growth",
+      "market_checked_at": "2026-10-12T19:32:59.493765+00:00",
+      "period": "Q2 FY2026",
+      "period_end": "2026-08-01",
+      "price": 44.15999984741211,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-08-21",
+      "revenue_current_millions": 319.816,
+      "revenue_growth": 0.04604938231224853,
+      "revenue_prior_millions": 305.737,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.sec.gov/Archives/edgar/data/885245/000088524526000033/bke20260801-8kexhibit.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/BKE/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "BKE",
+      "technical_entry": true,
+      "technical_exit": false,
+      "trailing_eps": 4.34,
+      "trailing_pe": 10.175115172214772,
+      "why": "Revenue grew only 4.6%. The completed inverse head & shoulders on October 9 cannot override the fundamental gate."
+    },
+    {
+      "annual_regular_dividend": 2.1,
+      "company": "Meta Platforms, Inc.",
+      "dividend_yield": 0.0029220644383898377,
+      "failed_gate": "dividend_yield",
+      "market_checked_at": "2026-10-12T19:30:37.726923+00:00",
+      "period": "Q2 2026",
+      "period_end": "2026-06-30",
+      "price": 718.6699829101562,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-07-29",
+      "revenue_current_millions": 60801,
+      "revenue_growth": 0.27959003283104633,
+      "revenue_prior_millions": 47516,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Second-Quarter-2026-Results/"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/META/"
+        },
+        {
+          "label": "Dividend declaration",
+          "url": "https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Announces-Quarterly-Cash-Dividend-bf2dec2b8/default.aspx"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "META",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 26.54,
+      "trailing_pe": 27.078748414097824,
+      "why": "Indicated regular yield is 0.29%, below the required 2%, despite revenue growth of 28.0%."
+    },
+    {
+      "annual_regular_dividend": 0.6,
+      "company": "Micron Technology, Inc.",
+      "dividend_yield": 0.0005830903790087463,
+      "failed_gate": "dividend_yield",
+      "market_checked_at": "2026-10-12T19:30:37.849871+00:00",
+      "period": "Q4 FY2026",
+      "period_end": "2026-09-03",
+      "price": 1029.0,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-09-30",
+      "revenue_current_millions": 54229,
+      "revenue_growth": 3.7926646045072916,
+      "revenue_prior_millions": 11315,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://www.sec.gov/Archives/edgar/data/723125/000072312526000018/a2026q4ex991-pressrelease.htm"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/MU/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "MU",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 74.33,
+      "trailing_pe": 13.843670119736311,
+      "why": "Indicated regular yield is 0.06%, below the required 2%, despite revenue growth of 379.3%. Its extra-week quarter also needs comparability review."
+    },
+    {
+      "annual_regular_dividend": 2.0,
+      "company": "Oracle Corporation",
+      "dividend_yield": 0.014144272180550114,
+      "failed_gate": "dividend_yield",
+      "market_checked_at": "2026-10-12T19:30:37.919288+00:00",
+      "period": "Q1 FY2027",
+      "period_end": "2026-08-31",
+      "price": 141.39999389648438,
+      "price_date": "2026-10-09",
+      "reported_at": "2026-09-10",
+      "revenue_current_millions": 19345,
+      "revenue_growth": 0.2960605654562509,
+      "revenue_prior_millions": 14926,
+      "sources": [
+        {
+          "label": "Quarterly results",
+          "url": "https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Q1-Results-Driven-by-Triple-Digit-Growth-in-Cloud-Infrastructure-Revenues/default.aspx"
+        },
+        {
+          "label": "Market data",
+          "url": "https://finance.yahoo.com/quote/ORCL/"
+        }
+      ],
+      "status": "not_buy",
+      "symbol": "ORCL",
+      "technical_entry": false,
+      "technical_exit": false,
+      "trailing_eps": 6.38,
+      "trailing_pe": 22.163008447724824,
+      "why": "Indicated regular yield is 1.41%, below the required 2%, despite revenue growth of 29.6%."
+    }
+  ],
+  "sell_list_meaning": "Ten stocks that fail a new-buy rule. This is not a portfolio liquidation list.",
+  "short_histories_excluded": 4,
+  "snapshot_kind": "dated_research_review",
+  "valuation_basis": "P/E uses the October 9 close and provider trailing EPS checked October 12. Yield uses annual indicated regular cash dividends divided by the same close. Provider EPS is rounded."
+}

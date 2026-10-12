@@ -115,11 +115,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             route = urlsplit(self.path)
-            if route.path.startswith(("/review", "/api/review", "/learn", "/api/training")) and not self._local_host():
+            if route.path.startswith(("/review", "/api/review", "/learn", "/api/training", "/stocks", "/api/stock-lists")) and not self._local_host():
                 self._respond({"error": "local host required"}, 403)
                 return
             if route.path == "/learn":
                 self._respond((STATIC / "training.html").read_bytes(), content_type="text/html; charset=utf-8")
+            elif route.path == "/stocks":
+                self._respond((STATIC / "stocks.html").read_bytes(), content_type="text/html; charset=utf-8")
+            elif route.path == "/api/stock-lists":
+                self._respond(json.loads((STATIC / "stock-lists.json").read_text()))
             elif route.path in {"/api/training", "/api/training/card"}:
                 params = parse_qs(route.query)
                 if params.get("reviewer", [REVIEWER_ID])[0] != REVIEWER_ID:

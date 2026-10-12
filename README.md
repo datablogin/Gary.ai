@@ -67,6 +67,12 @@ These additional observations use a separate `five-year-assisted-v1` queue and j
 
 `make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
 
+## Stock lists
+
+Open `/stocks` from the paper portfolio, pattern lab or Train more. The dated research snapshot shows **Buy List - so far** and **Sell List - so far**, with a Why column, metrics and original source links. Only fully qualified buys appear: the October12 review has zero buy-ready names and ten confirmed non-buys. The non-buy list does not imply liquidation of existing holdings. Market prices/charts end October9; fundamentals and trailing EPS were checked October12. This snapshot is manually refreshed through another reviewed data run.
+
+See [research and source evidence](docs/research/2026-10-12-equity-lists.md), [management clearance research](docs/research/2026-10-12-buy-clearance.md) and [delivery checks](docs/cycles/2026-10-12-stock-lists.md).
+
 ## Train more
 
 Open `/learn` from either the paper portfolio or pattern lab. On the original machine:
