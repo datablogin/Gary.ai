@@ -14,6 +14,7 @@ from gary.coverage import coverage_report
 from gary.patterns import detect_patterns
 from gary.portfolio import step_portfolio
 from gary.review_preview import CYCLE3, DEFAULT_STUDY, cycle3_study, load_labels, load_queue, reviewer_view, save_label
+from gary.training_preview import DEFAULT_TRAINING, TrainingStore
 
 STATIC = Path(__file__).with_name("static")
 STATE_PATH = Path.cwd() / "private" / "paper-preview-state.json"
@@ -21,6 +22,7 @@ LOCK = Lock()
 REVIEW_DIRECTORY = DEFAULT_STUDY
 REVIEWER_ID = "gary"
 CYCLE3_DIRECTORY = None
+TRAINING_DIRECTORY = DEFAULT_TRAINING
 
 STUDIES = [{"key": "five-year", "title": "Five-year exploration"},
            {"key": "holdout", "title": "Frozen holdout"},
@@ -113,10 +115,28 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             route = urlsplit(self.path)
-            if route.path.startswith(("/review", "/api/review")) and not self._local_host():
+            if route.path.startswith(("/review", "/api/review", "/learn", "/api/training")) and not self._local_host():
                 self._respond({"error": "local host required"}, 403)
                 return
-            if route.path == "/review":
+            if route.path == "/learn":
+                self._respond((STATIC / "training.html").read_bytes(), content_type="text/html; charset=utf-8")
+            elif route.path in {"/api/training", "/api/training/card"}:
+                params = parse_qs(route.query)
+                if params.get("reviewer", [REVIEWER_ID])[0] != REVIEWER_ID:
+                    raise PermissionError("Assigned reviewer only")
+                if set(params) - {"round_id", "reviewer", "case_id"}:
+                    raise ValueError("Unsupported training lookup")
+                with LOCK:
+                    store = TrainingStore(TRAINING_DIRECTORY, REVIEWER_ID)
+                    if route.path.endswith("/card"):
+                        if not params.get("round_id") or not params.get("case_id"):
+                            raise ValueError("Select a round and chart")
+                        self._respond(store.card(params["round_id"][0], params["case_id"][0]))
+                    else:
+                        if "case_id" in params:
+                            raise ValueError("Unsupported training lookup")
+                        self._respond(store.hub(params.get("round_id", [None])[0]))
+            elif route.path == "/review":
                 self._respond((STATIC / "review.html").read_bytes(), content_type="text/html; charset=utf-8")
             elif route.path in {"/api/review", "/api/review/card"}:
                 query = parse_qs(route.query)
@@ -157,7 +177,26 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with LOCK:
                 route = urlsplit(self.path)
-                if route.path == "/api/review/label":
+                if route.path in {"/api/training/round", "/api/training/label"}:
+                    if route.query:
+                        raise ValueError("Unsupported training mutation lookup")
+                    length = int(self.headers.get("Content-Length", "0"))
+                    if not 0 < length <= 16384 or self.headers.get_content_type() != "application/json":
+                        raise ValueError("A bounded JSON training request is required")
+                    entry = json.loads(self.rfile.read(length))
+                    store = TrainingStore(TRAINING_DIRECTORY, REVIEWER_ID)
+                    if route.path.endswith("/round"):
+                        if not isinstance(entry, dict) or set(entry) != {"request_id"}:
+                            raise ValueError("Only a request id is accepted")
+                        self._respond(store.request_round(entry["request_id"]))
+                    else:
+                        if not isinstance(entry, dict) or set(entry) != {"round_id", "case_id", "reviewer_id", "decision", "rationale", "events", "expected_revision", "revise", "view_token"}:
+                            raise ValueError("A bounded training label envelope is required")
+                        if entry["reviewer_id"] != REVIEWER_ID:
+                            raise PermissionError("Assigned reviewer only")
+                        round_id = entry.pop("round_id")
+                        self._respond(store.save_label(round_id, entry))
+                elif route.path == "/api/review/label":
                     length = int(self.headers.get("Content-Length", "0"))
                     if not 0 < length <= 16384 or self.headers.get_content_type() != "application/json":
                         raise ValueError("A bounded JSON label is required")
@@ -193,17 +232,19 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    global REVIEW_DIRECTORY, REVIEWER_ID, CYCLE3_DIRECTORY
+    global REVIEW_DIRECTORY, REVIEWER_ID, CYCLE3_DIRECTORY, TRAINING_DIRECTORY
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=4175)
     parser.add_argument("--study-dir", type=Path, default=DEFAULT_STUDY)
     parser.add_argument("--reviewer", default="gary", help="bind the review server to one declared reviewer")
     parser.add_argument("--cycle-3", action="store_true", help="serve released holdout and five-year studies")
     parser.add_argument("--cycle-3-dir", type=Path, default=CYCLE3)
+    parser.add_argument("--training-dir", type=Path, default=DEFAULT_TRAINING)
     args = parser.parse_args()
     REVIEW_DIRECTORY = args.study_dir
     REVIEWER_ID = args.reviewer
     CYCLE3_DIRECTORY = args.cycle_3_dir if args.cycle_3 else None
+    TRAINING_DIRECTORY = args.training_dir
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     print(f"Gary.ai synthetic paper preview: http://127.0.0.1:{args.port}", flush=True)
     try:

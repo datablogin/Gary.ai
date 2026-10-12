@@ -21,8 +21,8 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | A0 / train-more-contracts | Coordinator | VERIFIED | Human plan/interface approval and SHIP review exist. |
 | A1 / train-more-diagnostics | Evidence developer | VERIFIED | A0 contract and preservation checks independently pass. |
 | A2 / train-more-rounds | Round developer | VERIFIED | A0 passed; A1 report contract/analysis seam independently verified. |
-| A3 / train-more-app | Coordinator | READY | A1 and A2 public-seam gates pass and shared schemas are frozen. |
-| A4 / train-more-pattern-decision | Conditional pattern developer | NOT_READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
+| A3 / train-more-app | Coordinator | VERIFIED | A1 and A2 public-seam gates pass and shared schemas are frozen. |
+| A4 / train-more-pattern-decision | Conditional pattern developer | READY | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
 | A5 / train-more-qa | Fresh independent QA | NOT_READY | A3 finished and A4 decision verified; candidate tests if applicable. |
 
 Readiness is evaluated again immediately before each launch. Dependency status does not become READY merely because an agent says it finished. Supervisor runs the literal verify-by commands and checks stated exit conditions, then records the result. Agents never launch other assignments themselves. A4 always has a bounded decision outcome; a v2 is not required to complete the approved workflow. If an input is missing, needs_data is supported; a failed implementation gate is not equivalent to that supported outcome.
@@ -202,3 +202,5 @@ Human explicitly requested resume the pipeline. Checkpoint a7f53bb108197d06841da
 - A2 launched as /root/training_rounds, session train-more-rounds; A1 full-SHA77ac1aaf49ec851b95ceca33608bcee0474d24d6 verified. Owner only new training core/tests/TDD evidence. No application or legacy writes yet.
 
 - A2 independently verified October12:159 A1/A2 tests passed; public create/resume/complete/new-request/idempotent replay passed with immutable prior round and one active round. Independent alias-chain target bypass was reproduced, returned to owner for observed regression/minimum fix, and reverified.430 baseline hashes and diff check pass. A3 READY.
+- A3 coordinator train-more-app launched after independently verified A2 full SHA79872cdc011faf6b16586fd30695cb640cfde39f. Operational red/green checks use isolated4176 synthetic stores; production receipts/diagnostic are prepared without creating or labeling a real round.
+- A3 verified October12:545 full tests in28.17s; diagnostics replay, isolated HTTP/browser save flow, restart replay, retained source/catalog and coherent sidecar tamper controls, legacy original read-only gate, UI syntax and430 preservation hashes passed. Zero production training transactions. A4 READY; A5 still gated.

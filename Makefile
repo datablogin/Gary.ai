@@ -1,4 +1,4 @@
-.PHONY: verify preview coverage review review-cycle3 preview-cycle3
+.PHONY: verify preview coverage review review-cycle3 preview-cycle3 training-prepare training-diagnostics
 verify:
 	uv run pytest -q
 	git diff --check
@@ -17,3 +17,9 @@ review-cycle3:
 
 preview-cycle3:
 	uv run python -m gary.preview --cycle-3
+
+training-prepare:
+	uv run python -m gary.training_preview prepare
+
+training-diagnostics:
+	uv run python -m gary.training_preview diagnostics

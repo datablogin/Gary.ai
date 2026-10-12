@@ -67,6 +67,26 @@ These additional observations use a separate `five-year-assisted-v1` queue and j
 
 `make coverage` summarizes this machine's ignored cached pilot evidence. A fresh clone has no raw provider cache and reports that absence; see `uv run python -m gary.coverage_probe --help` for an optional bounded live probe. Full vendor datasets are not committed.
 
+## Train more
+
+Open `/learn` from either the paper portfolio or pattern lab. On the original machine:
+
+```bash
+make training-prepare
+make training-diagnostics
+make preview-cycle3
+```
+
+Train more creates a reproducible anonymous batch of up to twelve charts or resumes the one already in progress. Each chart has a five-year daily overview and a separate 180-session detail; judgments apply to the final 20 sessions. Save advances to an unreviewed chart. Revisions require an explicit checkbox and preserve the previous completed pass.
+
+A completed single-human round shows a personal development comparison with committed v1 predictions. Earlier completed diagnostics can be expanded separately. Random/enriched memberships remain distinct, uncertain/invalid charts are unscored, and these results do not measure independent accuracy or portfolio performance. The detector and paper policy remain unchanged. A separately justified candidate and fresh validation are later work.
+
+Requests, allocations, exposure and labels are committed together in an append-and-fsync journal under ignored `private/training`; restart and lost materialized caches recover from that journal. Raw sources, reviewed classification/alias receipts, full exposure history and the local v1 registry are checked before serving or saving. HTTP cannot select files, modules, reviewer identity or thresholds. This remains trusted single-user localhost research.
+
+The cached pilot bootstrap reserves every known prior target conservatively and records broader history as development exposure. New rounds exclude reused targets, alias duplicates, active future-validation reservations and reported full-view splits. Missing provenance or exhausted targets produces a data-needed state. A fresh clone lacks the private source/exposure evidence and cannot silently allocate charts. No source fetching occurs here.
+
+An operator may import a reviewed retained bundle with `uv run python -m gary.training_preview import --bundle PATH --training-dir DIRECTORY`. The bundle contains catalog/config, source receipt adapters and byte-hashed evidence paths; import refuses to replace a different existing bootstrap. Source augmentation and new validation corpora must retain the full prior exposure history in a separately reviewed import. An isolated `--training-dir` supports synthetic QA without writing real judgments or paper state.
+
 ## Agent development cycle
 
 Research Dot → reviewed contracts → one failing behavior test → minimum passing implementation → local preview → independent QA → failing regression → correction and recheck.
