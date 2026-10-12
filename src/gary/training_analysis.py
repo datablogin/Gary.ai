@@ -17,6 +17,7 @@ def _training_reference(queue, reference):
     sealed = queue["sealed"]
     if (queue["schema_version"] != "pattern-training-review-v1"
             or sealed["config"]["profile"] != _PROFILE
+            or not isinstance(queue["order"], list)
             or _hash({key: value for key, value in queue.items() if key != "queue_hash"}) != queue["queue_hash"]
             or len(queue["order"]) != len(set(queue["order"]))
             or set(queue["order"]) != set(queue["cards"]) or set(queue["cards"]) != set(sealed["cases"])):
@@ -76,6 +77,7 @@ def _training_history(queue, completed_pass):
                       reference_hash=queue["sealed"]["reference"]["commitment_hash"],
                       detector_version=_trusted_detector()["version"], reference_detector_input_sessions=180)
         if (type(row["revision"]) is not int or row["revision"] != revision
+                or type(row["reference_detector_input_sessions"]) is not int
                 or row["supersedes_revision"] != supersedes
                 or (supersedes is not None and type(row["supersedes_revision"]) is not int)
                 or any(row.get(field) != value for field, value in (normalized | stamps).items())):
@@ -85,7 +87,7 @@ def _training_history(queue, completed_pass):
 
 
 def _original_reference(queue, completed_pass, reference):
-    if set(reference) != {"kind", "release", "parent_queue", "reveal_receipt"}:
+    if set(reference) - {"reveal_receipt"} != {"kind", "release", "parent_queue"}:
         raise ValueError("original reference fields invalid")
     release = reference["release"]
     expected = freeze_evaluation(reference["parent_queue"], release["calibration_labels"], release["candidate_version"])
@@ -95,12 +97,19 @@ def _original_reference(queue, completed_pass, reference):
     if context["parent_queue"] != release["holdout_queue"] or context["parent_release_hash"] != release["release_hash"]:
         raise ValueError("assisted queue differs from original released parent")
     _view_history(context, completed_pass)
+    if any(row["supersedes_revision"] is not None and type(row["supersedes_revision"]) is not int
+           for row in completed_pass["entries"]):
+        raise ValueError("original superseded revision must be an integer")
     rows = _history(queue, completed_pass)
     humans = [key for key, value in queue["sealed"]["config"]["reviewers"].items() if value["role"] == "human"]
     if len(humans) != 1 or any(row["reviewer_id"] != humans[0] for row in completed_pass["entries"]):
         raise ValueError("original diagnostic requires only the sole human pass")
     latest = {key: row for (key, identity), row in rows.items() if identity == humans[0]}
-    receipt = reference["reveal_receipt"]
+    receipt = reference.get("reveal_receipt")
+    if receipt is None:
+        return latest, dict(status="reveal_timing_unknown", locked_pass_hash=_hash(completed_pass),
+                            revealed_at_utc=None, reveal_receipt_hash=None,
+                            journal_prefix_commitment=None, independence_claim=False)
     when = datetime.fromisoformat(receipt["revealed_at_utc"].replace("Z", "+00:00"))
     if (receipt["schema_version"] != "completed-context-identity-reveal-v1"
             or receipt["queue_hash"] != queue["queue_hash"]

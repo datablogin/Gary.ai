@@ -229,3 +229,116 @@ def test_original_release_reproduces_parent_and_binds_completed_pass_to_reveal_r
     assert report["chronology"]["reveal_receipt_hash"] == digest(released["reveal_receipt"])
     assert report["chronology"]["journal_prefix_commitment"] is None
     assert report["chronology"]["independence_claim"] is False and (queue, completed, released) == before
+
+
+@pytest.mark.parametrize("missing", [False, True])
+def test_original_release_without_receipt_reports_unknown_reveal_timing(missing):
+    queue, completed, released = original_inputs()
+    if missing:
+        del released["reveal_receipt"]
+    else:
+        released["reveal_receipt"] = None
+    report = analyze_training_pass(queue, completed, released)
+    assert report["status"] == "complete"
+    assert report["chronology"] == dict(status="reveal_timing_unknown", locked_pass_hash=digest(completed),
+                                       revealed_at_utc=None, reveal_receipt_hash=None,
+                                       journal_prefix_commitment=None, independence_claim=False)
+
+
+@pytest.mark.parametrize("change", ["source", "parameters", "evaluator", "prediction", "protocol"])
+def test_original_release_rejects_coherently_rehashed_untrusted_commitments(change):
+    queue, completed, released = original_inputs()
+    release = released["release"]
+    if change in ("source", "parameters"):
+        field = "source_file_sha256" if change == "source" else "parameter_hash"
+        release["detector_manifest"][field] = "0" * 64
+    elif change == "evaluator":
+        release["evaluator_manifest"]["review_source_file_sha256"] = "0" * 64
+    elif change == "prediction":
+        release["holdout_predictions"][queue["order"][0]].append(
+            dict(kind="cup_handle", completion_date="2025-01-01", available_at="2025-01-01"))
+    else:
+        release["matching_policy"]["match_tolerance_sessions"] = 4
+    release["release_hash"] = digest({key: value for key, value in release.items() if key != "release_hash"})
+    queue["sealed"]["context_review"]["parent_release_hash"] = release["release_hash"]
+    queue["queue_hash"] = digest({key: value for key, value in queue.items() if key != "queue_hash"})
+    completed["queue_hash"] = queue["queue_hash"]
+    released["reveal_receipt"]["queue_hash"] = queue["queue_hash"]
+    released["reveal_receipt"]["gary_pass_snapshot_sha256"] = digest(completed)
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, completed, released)
+
+
+@pytest.mark.parametrize("change", ["schema", "queue", "pass", "naive_time", "invalid_time",
+                                    "missing_time", "chart_order", "chart_type", "ticker", "company", "missing_chart"])
+def test_present_conflicting_reveal_evidence_fails_instead_of_becoming_unknown(change):
+    queue, completed, released = original_inputs()
+    receipt = released["reveal_receipt"]
+    if change in ("schema", "queue", "pass", "naive_time", "invalid_time"):
+        field, value = {"schema": ("schema_version", "other-schema"), "queue": ("queue_hash", "0" * 64),
+                        "pass": ("gary_pass_snapshot_sha256", "0" * 64),
+                        "naive_time": ("revealed_at_utc", "2026-10-11T17:00:00"),
+                        "invalid_time": ("revealed_at_utc", "not-a-timestamp")}[change]
+        receipt[field] = value
+    elif change == "missing_time":
+        del receipt["revealed_at_utc"]
+    elif change == "missing_chart":
+        receipt["charts"].pop()
+    else:
+        field, value = {"chart_order": ("chart", 2), "chart_type": ("chart", True),
+                        "ticker": ("ticker", "OTHER"), "company": ("company", "")}[change]
+        receipt["charts"][0][field] = value
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, completed, released)
+
+
+def test_later_original_revision_cannot_replace_the_receipt_bound_report():
+    queue, completed, released = original_inputs()
+    original = analyze_training_pass(queue, completed, released)
+    revised = context_review.record_review_label(queue, completed,
+        dict(case_id=queue["order"][0], reviewer_id="gary", decision="uncertain", rationale="Synthetic revision.",
+             events=[], expected_revision=1, revise=True, view_token=queue["queue_hash"]))
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, revised, released)
+    development = analyze_training_pass(queue, revised, released | {"reveal_receipt": None})
+    assert development["chronology"]["status"] == "reveal_timing_unknown"
+    assert development["pass_hash"] != original["pass_hash"] and development["report_hash"] != original["report_hash"]
+    assert analyze_training_pass(queue, completed, released) == original
+
+
+def test_original_revision_history_rejects_boolean_superseded_revision():
+    queue, completed, released = original_inputs()
+    revised = context_review.record_review_label(queue, completed,
+        dict(case_id=queue["order"][0], reviewer_id="gary", decision="uncertain", rationale="Synthetic revision.",
+             events=[], expected_revision=1, revise=True, view_token=queue["queue_hash"]))
+    revised["entries"][-1]["supersedes_revision"] = True
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, revised, released | {"reveal_receipt": None})
+
+
+def test_original_missing_chronology_preserves_coverage_only_for_an_incomplete_pass():
+    queue, completed, released = original_inputs()
+    completed["entries"].pop()
+    report = analyze_training_pass(queue, completed, released | {"reveal_receipt": None})
+    assert report["status"] == "pending" and report["coverage"]["unreviewed_cases"] == 1
+    assert report["chronology"]["status"] == "reveal_timing_unknown"
+    assert report["overall"] is None and report["by_stratum"] is None and report["inventory"] is None
+
+
+def test_training_history_input_session_stamp_requires_an_integer():
+    queue = training_queue()
+    completed = labels(queue)
+    completed["entries"][0]["reference_detector_input_sessions"] = 180.0
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, completed, reference(queue))
+
+
+def test_training_case_order_requires_a_list_even_when_hashes_are_coherent():
+    queue = training_queue()
+    completed = labels(queue)
+    queue["order"] = {key: None for key in queue["order"]}
+    rehash(queue)
+    completed["queue_hash"] = queue["queue_hash"]
+    completed["entries"][0]["view_token"] = queue["queue_hash"]
+    with pytest.raises(ValueError):
+        analyze_training_pass(queue, completed, reference(queue))
