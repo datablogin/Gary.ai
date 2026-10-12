@@ -23,7 +23,7 @@ Recommended shape: SERIAL, using Codex collaboration subagents for delegated wor
 | A2 / train-more-rounds | Round developer | VERIFIED | A0 passed; A1 report contract/analysis seam independently verified. |
 | A3 / train-more-app | Coordinator | VERIFIED | A1 and A2 public-seam gates pass and shared schemas are frozen. |
 | A4 / train-more-pattern-decision | Conditional pattern developer | VERIFIED | A1 inventory and A3 baseline integration verified; inspect requirement gate. If no defensible correction, record retain_v1 without v2 code. |
-| A5 / train-more-qa | Fresh independent QA | READY | A3 finished and A4 decision verified; candidate tests if applicable. |
+| A5 / train-more-qa | Fresh independent QA | RUNNING | A3 finished and A4 decision verified; candidate tests if applicable. |
 
 Readiness is evaluated again immediately before each launch. Dependency status does not become READY merely because an agent says it finished. Supervisor runs the literal verify-by commands and checks stated exit conditions, then records the result. Agents never launch other assignments themselves. A4 always has a bounded decision outcome; a v2 is not required to complete the approved workflow. If an input is missing, needs_data is supported; a failed implementation gate is not equivalent to that supported outcome.
 
@@ -207,3 +207,5 @@ Human explicitly requested resume the pipeline. Checkpoint a7f53bb108197d06841da
 - A4 launched as /root/training_pattern_decision, session train-more-pattern-decision, after verified A3 SHA17988b3bfd5f7966faed56ef525a93287ca4556d. Bounded retain-or-separate-candidate decision; no portfolio promotion.
 
 - A4 independently verified October12: immutable retain_v1 decision received SHA6afce50291fe3676f25705dbe6b40554c79eeca3bc8f3bc4f5c6bcd00a3f3750 matched;42 detector tests,430 preservation hashes and diff check passed. No separate candidate or fresh validation claim. A5 READY.
+
+- A5 launched as fresh /root/training_engineering_qa, session train-more-qa, after all dependencies independently verified at SHA6921cf190d22f57c6e6bdb6089911fbb4ee3a279 (remote equal). QA owns only the synthetic workflow probe and public engineering evidence; coordinator retains product/git/delivery ownership.

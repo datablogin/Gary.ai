@@ -328,7 +328,8 @@ class TrainingStore:
             result.update(status=selected["status"], round=dict(round_id=selected["round_id"], status=selected["status"],
                 order=selected["queue"]["order"], progress=summary["progress"], own_labels={k: _own_label(v) for k, v in summary["own_labels"].items()},
                 diagnostic=_diagnostic_projection(summary["diagnostic"]), snapshot_count=len(selected["snapshots"])))
-        elif history["requests"] and list(history["requests"].values())[-1]["outcome"] == "needs_data":
+        # Data availability belongs to the hub even while a completed round is selected.
+        if history["requests"] and list(history["requests"].values())[-1]["outcome"] == "needs_data":
             result.update(status="needs_data", message="No admitted unused targets remain. Additional reviewed source data are needed.")
         elif not state["bootstrap"]["catalog"]["sources"] or state["bootstrap"]["catalog"]["exposure"].get("complete") is not True:
             result.update(status="needs_data", message="Reviewed source and complete exposure evidence are needed.")
