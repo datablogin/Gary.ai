@@ -9,6 +9,8 @@ from copy import deepcopy
 from datetime import date, datetime, time, timedelta, timezone
 from hashlib import sha256
 from html.parser import HTMLParser
+import gzip
+from io import BytesIO
 import json
 from math import isfinite
 import os
@@ -20,6 +22,7 @@ from threading import Lock, Thread
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
+from zlib import error as DecompressionError
 
 from gary.patterns_v2 import VERSION, PARAMETER_HASH, detect_patterns
 from gary.watch import ManualWatchStore
@@ -90,6 +93,14 @@ class _VisibleText(HTMLParser):
 
 
 def _quote_observations(raw, price):
+    if raw.startswith(b"\x1f\x8b"):
+        try:
+            with gzip.GzipFile(fileobj=BytesIO(raw)) as compressed:
+                raw = compressed.read(8_000_001)
+        except (OSError, EOFError, DecompressionError) as error:
+            raise ValueError("Compressed quote receipt is incomplete or invalid") from error
+        if len(raw) > 8_000_000:
+            raise ValueError("Decoded quote exceeds the bounded receipt size")
     parser = _VisibleText()
     parser.feed(raw.decode("utf-8"))
     fields = {}
@@ -254,6 +265,9 @@ class WatchDesk:
             record = catalog.get(row["symbol"], {})
             row["refresh"] = jobs.get(row["symbol"])
             row["observation_note"] = record.get("observation_note")
+            snapshot = record.get("coverage_snapshot")
+            if isinstance(snapshot, dict) and snapshot.get("symbol") == row["symbol"] and isinstance(snapshot.get("review_notes"), str):
+                row["observation_note"] = snapshot["review_notes"]
             row["source_warning"] = record.get("source_warning")
             row["annualized_volatility"] = record.get("annualized_volatility")
             count = record.get("volatility_return_count")
@@ -274,6 +288,13 @@ class WatchDesk:
         # A stock with no retained 200-return measure cannot fill the Buy List.
         result["buy_ready_list"] = [row for row in result["buy_ready_list"] if row["status"] == "buy_ready"]
         result["buy_ready_list"].sort(key=lambda row: (row["annualized_volatility"], row["symbol"]))
+        review_dates = sorted({record["coverage_snapshot"].get("latest_reported_period", {}).get("verified_as_of")
+                               for record in catalog.values() if isinstance(record.get("coverage_snapshot"), dict)
+                               and isinstance(record["coverage_snapshot"].get("latest_reported_period"), dict)
+                               and isinstance(record["coverage_snapshot"]["latest_reported_period"].get("verified_as_of"), str)})
+        result["radar_empty_reason"] = ("Completed company reviews are retained through " + ", ".join(review_dates) +
+                                        ". Current Radar requires fresh market checks and a current filing/management recheck; completed entries move to the Buy List.") if review_dates else (
+                                        "Headquarters and comparable accounting reviews are still incomplete in the retained research. Add tickers below to monitor their checks; a numerical pass alone cannot enter Radar.")
         result.update({"detector_version": VERSION, "parameter_hash": PARAMETER_HASH, "pattern_rules": RULES,
                        "freshness_policy": "Completed daily closes only. Weekday cutoff approximation; exchange holidays and provider adjustments require review. A stale/missing chart cannot clear an entry.",
                        "jobs": jobs})
